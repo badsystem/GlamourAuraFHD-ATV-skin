@@ -1,6 +1,8 @@
 ﻿# coded by shamann
 # modded by Malakudi, added utf8 support
-from Renderer import Renderer
+from __future__ import absolute_import
+import six
+from Components.Renderer.Renderer import Renderer
 from enigma import eLabel, eTimer
 from Components.VariableText import VariableText
 
@@ -40,7 +42,7 @@ class GlamRoll(VariableText, Renderer):
 		if self.instance:
 			text_width = self.instance.calculateSize().width()
 			if (self.instance and (text_width > self.sizeX)):
-				self.x = len(self.text.decode("utf8","ignore"))
+				self.x = len(self.text)
 				self.idx = 0
 				self.backtext = self.text
 				self.status = "start" 
@@ -52,8 +54,8 @@ class GlamRoll(VariableText, Renderer):
 	def moveTimerTextRun(self):
 		self.moveTimerText.stop()
 		if self.x > 0:
-			txttmp = self.backtext.decode("utf8","ignore")[self.idx:]
-			self.text = txttmp.encode("utf8","ignore").replace("\n","").replace("\r"," ")
+			txttmp = self.backtext[self.idx:]
+			self.text = txttmp.replace("\n", "").replace("\r", " ")
 			self.idx = self.idx+1
 			self.x = self.x-1
 		if self.x == 0: 

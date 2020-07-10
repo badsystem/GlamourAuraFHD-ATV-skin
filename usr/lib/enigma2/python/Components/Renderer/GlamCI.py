@@ -1,4 +1,5 @@
-﻿from Renderer import Renderer
+﻿from __future__ import absolute_import
+from Components.Renderer.Renderer import Renderer
 from enigma import eDVBCI_UI, eDVBCIInterfaces, eLabel, iPlayableService
 from Components.VariableText import VariableText
 
@@ -19,7 +20,7 @@ class GlamCI(Renderer, VariableText):
 		for (attrib, value) in self.skinAttributes:
 			if attrib == "allVisible":
 				self.allVisible = value == "1"
-				attribs.remove((attrib,value))
+				attribs.remove((attrib, value))
 				break
 		self.skinAttributes = attribs
 		return Renderer.applySkin(self, desktop, parent)
@@ -32,7 +33,7 @@ class GlamCI(Renderer, VariableText):
 			string = ""
 			if self.NUM_CI and self.NUM_CI > 0:
 				if self.eDVBCIUIInstance:
-					for slot in range(self.NUM_CI):
+					for slot in list(range(self.NUM_CI)):
 						add_num = True
 						if string:
 							string += " "
@@ -49,11 +50,7 @@ class GlamCI(Renderer, VariableText):
 							elif state == 2:
 								string += "\c0000??00"
 						else:
-							if not self.allVisible:
-								string += ""
-								add_num = False
-							else:
-								string += "\c00??2525"
+							string += "\c00??2525"
 						if add_num:
 							string += "%d" % (slot + 1)
 					if string:

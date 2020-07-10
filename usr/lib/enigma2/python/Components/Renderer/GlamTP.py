@@ -1,8 +1,11 @@
-﻿#  GlamTP renderer
+﻿
+#  GlamTP renderer
 #  Modded and recoded by MCelliotG for use in Glamour skins or standalone
 #  If you use this Renderer for other skins and rename it, please keep the first and second line adding your credits below
 
-from Renderer import Renderer
+from builtins import str
+from past.utils import old_div
+from Components.Renderer.Renderer import Renderer
 from enigma import eLabel, eTimer
 from Components.VariableText import VariableText
 from enigma import eServiceCenter, iServiceInformation, eDVBFrontendParametersSatellite
@@ -12,6 +15,7 @@ def sp(text):
 	if text:
 		text += " "
 	return text
+
 
 class GlamTP(VariableText, Renderer):
 	__module__ = __name__
@@ -63,7 +67,7 @@ class GlamTP(VariableText, Renderer):
 							curref = ""
 						if "%3a/" in refstr or ":/" in refstr:
 							strurl = refstr.split(":")
-							streamurl = strurl[10].replace("%3a",":")
+							streamurl = strurl[10].replace("%3a", ":")
 						if refstr.startswith("1:0:2"):
 							streamtype = "Radio"
 						elif not curref.startswith("1:0:") and "%3a/" in refstr:
@@ -86,11 +90,11 @@ class GlamTP(VariableText, Renderer):
 							try:
 								sys = (str(tpinfo.get("system")))
 								if "DVB-S" in sys:
-									freq = (str(int(tp["frequency"]) / 1000))
+									freq = (str(old_div(int(tp["frequency"]), 1000)))
 								elif "DVB-C" in sys:
-									freq = (str(int(tp["frequency"]) / 1000) + " Mhz")
+									freq = (str(old_div(int(tp["frequency"]), 1000)) + " Mhz")
 								elif "DVB-T" in sys or "ATSC" in sys:
-									freq = (str(int(tp["frequency"]) / 1000000) + " Mhz")
+									freq = (str(old_div(int(tp["frequency"]), 1000000)) + " Mhz")
 								else:
 									freq = ""
 							except:
@@ -140,7 +144,7 @@ class GlamTP(VariableText, Renderer):
 							except:
 								fec = ""
 						if "symbol_rate" in tp:
-							sr = (str(int(tp["symbol_rate"]) / 1000))
+							sr = (str(old_div(int(tp["symbol_rate"]), 1000)))
 						if "orbital_position" in tp:
 							orbpos = (int(tp["orbital_position"]))
 							if orbpos > 1800:
@@ -151,7 +155,7 @@ class GlamTP(VariableText, Renderer):
 							isid = str(tpinfo.get("is_id", 0))
 							plscode = str(tpinfo.get("pls_code", 0))
 							plsmode = str(tpinfo.get("pls_mode", None))
-							if plsmode == "None" or plsmode == "Unknown" or (plsmode is not "None" and plscode == "0"):
+							if plsmode == "None" or plsmode == "Unknown" or (plsmode != "None" and plscode == "0"):
 								plsmode = ""
 							if isid == "None" or isid == "-1" or isid == "0":
 								isid = ""
@@ -166,7 +170,7 @@ class GlamTP(VariableText, Renderer):
 					self.text = sp(streamtype) + sp(streamurl) + sp(orbpos) + ch + sp(freq) + sp(pol) + sp(sys) + sp(mod) + sp(plpid) + sp(sr) + sp(fec) + sp(const) + sp(isid) + sp(plsmode) + sp(plscode) + sp(t2mi_id) + t2mi_pid
 				text_width = self.instance.calculateSize().width()
 				if (self.instance and (text_width > self.sizeX)):
-					self.x = len(self.text.decode("utf8")) 
+					self.x = len(self.text) 
 					self.idx = 0
 					self.backtext = self.text
 					self.status = "start" 
@@ -177,8 +181,8 @@ class GlamTP(VariableText, Renderer):
 	def moveTimerTextRun(self):
 		self.moveTimerText.stop()
 		if self.x > 0:
-			txttmp = self.backtext.decode("utf8","ignore")[self.idx:]
-			self.text = txttmp.encode("utf8","ignore").replace("\n","").replace("\r"," ")
+			txttmp = self.backtext[self.idx:]
+			self.text = txttmp.replace("\n", "").replace("\r", " ")
 			self.idx = self.idx+1
 			self.x = self.x-1
 		if self.x == 0: 
@@ -190,5 +194,5 @@ class GlamTP(VariableText, Renderer):
 					self.text = self.text[:-1]
 					text_width = self.instance.calculateSize().width()
 				self.text = self.text[:-3] + "..."
-		if self.status is not "end":
+		if self.status != "end":
 			self.moveTimerText.start(150)

@@ -1,6 +1,7 @@
-﻿from Components.VariableText import VariableText
+﻿from builtins import str
+from Components.VariableText import VariableText
 from enigma import eLabel, eDVBVolumecontrol, eTimer
-from Renderer import Renderer
+from Components.Renderer.Renderer import Renderer
 
 class GlamVolumeText(Renderer, VariableText):
 	def __init__(self):
