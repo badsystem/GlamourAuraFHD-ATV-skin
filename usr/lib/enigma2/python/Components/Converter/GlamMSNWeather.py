@@ -21,11 +21,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
+from __future__ import absolute_import
+from past.utils import old_div
 import os
 import math
 import gettext
 import datetime, time
-from Tools.Directories import fileExists, pathExists
 from Components.Converter.Converter import Converter
 from Components.Element import cached
 from Components.config import config, configfile
@@ -33,8 +34,11 @@ from Components.Console import Console as iConsole
 from Components.Language import language
 from time import localtime, strftime
 from datetime import date
-from os import environ
-from Poll import Poll
+from os import environ, path
+from Components.Converter.Poll import Poll
+
+import six
+
 
 weather_city = config.plugins.weathermsn.city.value # 'Moscow,Russia'
 degreetype = config.plugins.weathermsn.degreetype.value # 'C'
@@ -384,7 +388,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		self.poll_enabled = True
 
 	def control_xml(self, result, retval, extra_args):
-		if retval is not 0:
+		if retval != 0:
 			self.write_none()
 
 	def write_none(self):
@@ -512,15 +516,15 @@ class GlamMSNWeather(Poll, Converter, object):
 			'Precip4':'',\
 			}
 #
-		if fileExists("/tmp/weathermsn2.xml"):
-			if int((time.time() - os.stat("/tmp/weathermsn2.xml").st_mtime)/60) >= time_update:
+		if os.path.exists("/tmp/weathermsn2.xml"):
+			if int(old_div((time.time() - os.stat("/tmp/weathermsn2.xml").st_mtime),60)) >= time_update:
 				self.get_xmlfile()
 		else:
 			self.get_xmlfile()
-		if not fileExists("/tmp/weathermsn2.xml"):
+		if not os.path.exists("/tmp/weathermsn2.xml"):
 			self.write_none()
 			return info
-		if fileExists("/tmp/weathermsn2.xml") and open("/tmp/weathermsn2.xml").read() is 'None':
+		if os.path.exists("/tmp/weathermsn2.xml") and open("/tmp/weathermsn2.xml").read() is 'None':
 			return info
 		for line in open("/tmp/weathermsn2.xml"):
 			try:
@@ -537,16 +541,16 @@ class GlamMSNWeather(Poll, Converter, object):
 					longitude = '%s' %  line.split(' long')[1].split('"')[1].replace(',', '.')
 				if "<current" in line:
 					if not line.split('temperature')[1].split('"')[1][0] is '-' and not line.split('temperature')[1].split('"')[1][0] is '0':
-						msnweather['Temp'] = '+' + line.split('temperature')[1].split('"')[1] + '%s%s' % (unichr(176).encode("latin-1"), degreetype)
+						msnweather['Temp'] = '+' + line.split('temperature')[1].split('"')[1] + '%s%s' % (six.chr(176).encode("latin-1"), degreetype)
 					else:
-						msnweather['Temp'] = line.split('temperature')[1].split('"')[1] + '%s%s' % (unichr(176).encode("latin-1"), degreetype)
+						msnweather['Temp'] = line.split('temperature')[1].split('"')[1] + '%s%s' % (six.chr(176).encode("latin-1"), degreetype)
 					if not line.split('feelslike')[1].split('"')[1][0] is '-' and not line.split('feelslike')[1].split('"')[1][0] is '0':
-						msnweather['Feelslike'] = '+' + line.split('feelslike')[1].split('"')[1] + '%s%s' % (unichr(176).encode("latin-1"), degreetype)
+						msnweather['Feelslike'] = '+' + line.split('feelslike')[1].split('"')[1] + '%s%s' % (six.chr(176).encode("latin-1"), degreetype)
 					else:
-						msnweather['Feelslike'] = line.split('feelslike')[1].split('"')[1] + '%s%s' % (unichr(176).encode("latin-1"), degreetype)
+						msnweather['Feelslike'] = line.split('feelslike')[1].split('"')[1] + '%s%s' % (six.chr(176).encode("latin-1"), degreetype)
 					msnweather['Picon'] = line.split('skycode')[1].split('"')[1]
 					msnweather['Skytext'] = line.split('skytext')[1].split('"')[1]
-					msnweather['Humidity'] = line.split('humidity')[1].split('"')[1] + ' %s' % unichr(37).encode("latin-1")
+					msnweather['Humidity'] = line.split('humidity')[1].split('"')[1] + ' %s' % six.chr(37).encode("latin-1")
 					try:
 						msnweather['Wind'] = line.split('winddisplay')[1].split('"')[1].split(' ')[2]
 					except:
@@ -593,16 +597,16 @@ class GlamMSNWeather(Poll, Converter, object):
 # Day 0
 				if "<forecast" in line:
 					if not line.split('low')[1].split('"')[1][0] is '-' and not line.split('low')[1].split('"')[1][0] is '0':
-						low0weather = '+' + line.split('low')[1].split('"')[1] + '%s' % unichr(176).encode("latin-1")
+						low0weather = '+' + line.split('low')[1].split('"')[1] + '%s' % six.chr(176).encode("latin-1")
 						msnweather['Lowtemp0'] = '%s%s' % (low0weather, degreetype)
 					else:
-						low0weather = line.split('low')[1].split('"')[1] + '%s' % unichr(176).encode("latin-1")
+						low0weather = line.split('low')[1].split('"')[1] + '%s' % six.chr(176).encode("latin-1")
 						msnweather['Lowtemp0'] = '%s%s' % (low0weather, degreetype)
 					if not line.split('high')[1].split('"')[1][0] is '-' and not line.split('high')[1].split('"')[1][0] is '0':
-						hi0weather = '+' + line.split('high')[1].split('"')[1] + '%s' % unichr(176).encode("latin-1")
+						hi0weather = '+' + line.split('high')[1].split('"')[1] + '%s' % six.chr(176).encode("latin-1")
 						msnweather['Hightemp0'] = '%s%s' % (hi0weather, degreetype)
 					else:
-						hi0weather = line.split('high')[1].split('"')[1] + '%s' % unichr(176).encode("latin-1")
+						hi0weather = line.split('high')[1].split('"')[1] + '%s' % six.chr(176).encode("latin-1")
 						msnweather['Hightemp0'] = '%s%s' % (hi0weather, degreetype)
 					msnweather['Temp0'] = '%s / %s' % (hi0weather, low0weather)
 					msnweather['Picon0'] = line.split('skycodeday')[1].split('"')[1]
@@ -611,20 +615,20 @@ class GlamMSNWeather(Poll, Converter, object):
 					msnweather['Day0'] = line.split(' day')[2].split('"')[1]
 					msnweather['Shortday0'] = line.split('shortday')[2].split('"')[1]
 					msnweather['Skytext0'] = line.split('skytextday')[1].split('"')[1]
-					msnweather['Precip0'] = line.split('precip')[1].split('"')[1] + ' %s' % unichr(37).encode("latin-1")
+					msnweather['Precip0'] = line.split('precip')[1].split('"')[1] + ' %s' % six.chr(37).encode("latin-1")
 # Day 1
 				if "<forecast" in line:
 					if not line.split('low')[2].split('"')[1][0] is '-' and not line.split('low')[2].split('"')[1][0] is '0':
-						low1weather = '+' + line.split('low')[2].split('"')[1] + '%s' % unichr(176).encode("latin-1")
+						low1weather = '+' + line.split('low')[2].split('"')[1] + '%s' % six.chr(176).encode("latin-1")
 						msnweather['Lowtemp1'] = '%s%s' % (low1weather, degreetype)
 					else:
-						low1weather = line.split('low')[2].split('"')[1] + '%s' % unichr(176).encode("latin-1")
+						low1weather = line.split('low')[2].split('"')[1] + '%s' % six.chr(176).encode("latin-1")
 						msnweather['Lowtemp1'] = '%s%s' % (low1weather, degreetype)
 					if not line.split('high')[2].split('"')[1][0] is '-' and not line.split('high')[2].split('"')[1][0] is '0':
-						hi1weather = '+' + line.split('high')[2].split('"')[1] + '%s' % unichr(176).encode("latin-1")
+						hi1weather = '+' + line.split('high')[2].split('"')[1] + '%s' % six.chr(176).encode("latin-1")
 						msnweather['Hightemp1'] = '%s%s' % (hi1weather, degreetype)
 					else:
-						hi1weather = line.split('high')[2].split('"')[1] + '%s' % unichr(176).encode("latin-1")
+						hi1weather = line.split('high')[2].split('"')[1] + '%s' % six.chr(176).encode("latin-1")
 						msnweather['Hightemp1'] = '%s%s' % (hi1weather, degreetype)
 					msnweather['Temp1'] = '%s / %s' % (hi1weather, low1weather)
 					msnweather['Picon1'] = line.split('skycodeday')[2].split('"')[1]
@@ -633,20 +637,20 @@ class GlamMSNWeather(Poll, Converter, object):
 					msnweather['Day1'] = line.split(' day')[3].split('"')[1]
 					msnweather['Shortday1'] = line.split('shortday')[3].split('"')[1]
 					msnweather['Skytext1'] = line.split('skytextday')[2].split('"')[1]
-					msnweather['Precip1'] = line.split('precip')[2].split('"')[1] + ' %s' % unichr(37).encode("latin-1")
+					msnweather['Precip1'] = line.split('precip')[2].split('"')[1] + ' %s' % six.chr(37).encode("latin-1")
 # Day 2
 				if "<forecast" in line:
 					if not line.split('low')[3].split('"')[1][0] is '-' and not line.split('low')[3].split('"')[1][0] is '0':
-						low2weather = '+' + line.split('low')[3].split('"')[1] + '%s' % unichr(176).encode("latin-1")
+						low2weather = '+' + line.split('low')[3].split('"')[1] + '%s' % six.chr(176).encode("latin-1")
 						msnweather['Lowtemp2'] = '%s%s' % (low2weather, degreetype)
 					else:
-						low2weather = line.split('low')[3].split('"')[1] + '%s' % unichr(176).encode("latin-1")
+						low2weather = line.split('low')[3].split('"')[1] + '%s' % six.chr(176).encode("latin-1")
 						msnweather['Lowtemp2'] = '%s%s' % (low2weather, degreetype)
 					if not line.split('high')[3].split('"')[1][0] is '-' and not line.split('high')[3].split('"')[1][0] is '0':
-						hi2weather = '+' + line.split('high')[3].split('"')[1] + '%s' % unichr(176).encode("latin-1")
+						hi2weather = '+' + line.split('high')[3].split('"')[1] + '%s' % six.chr(176).encode("latin-1")
 						msnweather['Hightemp2'] = '%s%s' % (hi2weather, degreetype)
 					else:
-						hi2weather = line.split('high')[3].split('"')[1] + '%s' % unichr(176).encode("latin-1")
+						hi2weather = line.split('high')[3].split('"')[1] + '%s' % six.chr(176).encode("latin-1")
 						msnweather['Hightemp2'] = '%s%s' % (hi2weather, degreetype)
 					msnweather['Temp2'] = '%s / %s' % (hi2weather, low2weather)
 					msnweather['Picon2'] = line.split('skycodeday')[3].split('"')[1]
@@ -655,20 +659,20 @@ class GlamMSNWeather(Poll, Converter, object):
 					msnweather['Day2'] = line.split(' day')[4].split('"')[1]
 					msnweather['Shortday2'] = line.split('shortday')[4].split('"')[1]
 					msnweather['Skytext2'] = line.split('skytextday')[3].split('"')[1]
-					msnweather['Precip2'] = line.split('precip')[3].split('"')[1] + ' %s' % unichr(37).encode("latin-1")
+					msnweather['Precip2'] = line.split('precip')[3].split('"')[1] + ' %s' % six.chr(37).encode("latin-1")
 # Day 3
 				if "<forecast" in line:
 					if not line.split('low')[4].split('"')[1][0] is '-' and not line.split('low')[4].split('"')[1][0] is '0':
-						low3weather = '+' + line.split('low')[4].split('"')[1] + '%s' % unichr(176).encode("latin-1")
+						low3weather = '+' + line.split('low')[4].split('"')[1] + '%s' % six.chr(176).encode("latin-1")
 						msnweather['Lowtemp3'] = '%s%s' % (low3weather, degreetype)
 					else:
-						low3weather = line.split('low')[4].split('"')[1] + '%s' % unichr(176).encode("latin-1")
+						low3weather = line.split('low')[4].split('"')[1] + '%s' % six.chr(176).encode("latin-1")
 						msnweather['Lowtemp3'] = '%s%s' % (low3weather, degreetype)
 					if not line.split('high')[4].split('"')[1][0] is '-' and not line.split('high')[4].split('"')[1][0] is '0':
-						hi3weather = '+' + line.split('high')[4].split('"')[1] + '%s' % unichr(176).encode("latin-1")
+						hi3weather = '+' + line.split('high')[4].split('"')[1] + '%s' % six.chr(176).encode("latin-1")
 						msnweather['Hightemp3'] = '%s%s' % (hi3weather, degreetype)
 					else:
-						hi3weather = line.split('high')[4].split('"')[1] + '%s' % unichr(176).encode("latin-1")
+						hi3weather = line.split('high')[4].split('"')[1] + '%s' % six.chr(176).encode("latin-1")
 						msnweather['Hightemp3'] = '%s%s' % (hi3weather, degreetype)
 					msnweather['Temp3'] = '%s / %s' % (hi3weather, low3weather)
 					msnweather['Picon3'] = line.split('skycodeday')[4].split('"')[1]
@@ -677,20 +681,20 @@ class GlamMSNWeather(Poll, Converter, object):
 					msnweather['Day3'] = line.split(' day')[5].split('"')[1]
 					msnweather['Shortday3'] = line.split('shortday')[5].split('"')[1]
 					msnweather['Skytext3'] = line.split('skytextday')[4].split('"')[1]
-					msnweather['Precip3'] = line.split('precip')[4].split('"')[1] + ' %s' % unichr(37).encode("latin-1")
+					msnweather['Precip3'] = line.split('precip')[4].split('"')[1] + ' %s' % six.chr(37).encode("latin-1")
 # Day 4
 				if "<forecast" in line:
 					if not line.split('low')[5].split('"')[1][0] is '-' and not line.split('low')[5].split('"')[1][0] is '0':
-						low4weather = '+' + line.split('low')[5].split('"')[1] + '%s' % unichr(176).encode("latin-1")
+						low4weather = '+' + line.split('low')[5].split('"')[1] + '%s' % six.chr(176).encode("latin-1")
 						msnweather['Lowtemp4'] = '%s%s' % (low4weather, degreetype)
 					else:
-						low4weather = line.split('low')[5].split('"')[1] + '%s' % unichr(176).encode("latin-1")
+						low4weather = line.split('low')[5].split('"')[1] + '%s' % six.chr(176).encode("latin-1")
 						msnweather['Lowtemp4'] = '%s%s' % (low4weather, degreetype)
 					if not line.split('high')[5].split('"')[1][0] is '-' and not line.split('high')[5].split('"')[1][0] is '0':
-						hi4weather = '+' + line.split('high')[5].split('"')[1] + '%s' % unichr(176).encode("latin-1")
+						hi4weather = '+' + line.split('high')[5].split('"')[1] + '%s' % six.chr(176).encode("latin-1")
 						msnweather['Hightemp4'] = '%s%s' % (hi4weather, degreetype)
 					else:
-						hi4weather = line.split('high')[5].split('"')[1] + '%s' % unichr(176).encode("latin-1")
+						hi4weather = line.split('high')[5].split('"')[1] + '%s' % six.chr(176).encode("latin-1")
 						msnweather['Hightemp4'] = '%s%s' % (hi4weather, degreetype)
 					msnweather['Temp4'] = '%s / %s' % (hi4weather, low4weather)
 					msnweather['Picon4'] = line.split('skycodeday')[5].split('"')[1]
@@ -699,20 +703,20 @@ class GlamMSNWeather(Poll, Converter, object):
 					msnweather['Day4'] = line.split(' day')[6].split('"')[1]
 					msnweather['Shortday4'] = line.split('shortday')[6].split('"')[1]
 					msnweather['Skytext4'] = line.split('skytextday')[5].split('"')[1]
-					msnweather['Precip4'] = line.split('precip')[5].split('"')[1] + ' %s' % unichr(37).encode("latin-1")
+					msnweather['Precip4'] = line.split('precip')[5].split('"')[1] + ' %s' % six.chr(37).encode("latin-1")
 			except:
 				pass
 #
 		PI = 3.14159265359
-		DEG2RAD = PI / 180 # radiany
-		RAD2DEG = 180 / PI # degrees
+		DEG2RAD = old_div(PI, 180) # radiany
+		RAD2DEG = old_div(180, PI) # degrees
 		try:
 			long = float(longitude)
 			lat = float(latitude)
 			zone = float(timezone)
 		except:
 			long = lat = zone = 0
-		UT = hour + min / 60 + sec / 3600
+		UT = hour + old_div(min, 60) + old_div(sec, 3600)
 # Julian date
 		if month <= 2:
 			year = year - 1
@@ -720,18 +724,18 @@ class GlamMSNWeather(Poll, Converter, object):
 		else:
 			year = year
 			month = month
-		JDN = day + int(365.25 * (year + 4716)) + int(30.6001 * (month + 1)) + 2 - int(year / 100) + int(year / 400) - 1524.5
-		JD = JDN + UT / 24
+		JDN = day + int(365.25 * (year + 4716)) + int(30.6001 * (month + 1)) + 2 - int(old_div(year, 100)) + int(old_div(year, 400)) - 1524.5
+		JD = JDN + old_div(UT, 24)
 # Star time
-		T = (JDN - 2451545) / 36525 # Julian century at midnight GMT
+		T = old_div((JDN - 2451545), 36525) # Julian century at midnight GMT
 		STT = math.fmod((6.697374558333 + 2400.0513369072223 * T + 0.0000258622 * T * T - 0.00000000172 * T * T * T), 24) # Greenwich star time at midnight
-		ST = math.fmod((STT + UT * 1.0027379093 - zone * 1.0027379093 + long / 15), 24) # local time at local time
+		ST = math.fmod((STT + UT * 1.0027379093 - zone * 1.0027379093 + old_div(int, 15)), 24) # local time at local time
 		if ST < 0:
 			ST = ST + 24
 		ST = ST * 15 # stellar time at the time of calculation in degrees
 # Sunrise, sunset, climax
 # Earth orbit
-		T = (JDN - 2451545) / 36525
+		T = old_div((JDN - 2451545), 36525)
 		LS = 280.4664568 + 36000.7697509 * T + 0.0003032 * T * T + 0.00000002 * T * T * T # cp longitude
 		MS = 357.5291092 + 35999.0502909 * T - 0.0001537 * T * T - 0.00000004 * T * T * T # Wed anomaly
 		ES = 0.016708634 - 0.000042037 * T - 0.0000001267 * T * T # eccentricity of the orbit
@@ -740,8 +744,8 @@ class GlamMSNWeather(Poll, Converter, object):
 		CS = (1.914602 - 0.004817 * T - 0.000014 * T * T) * math.sin(MS * DEG2RAD)\
 			+ (0.019993 - 0.000101 * T) * math.sin(2 * MS * DEG2RAD)\
 			+ 0.000289 * math.sin(3 * MS * DEG2RAD) # center equation
-		DS = (1.000001018 * (1 - ES * ES)) / (ES * math.cos((MS + CS) * DEG2RAD) + 1) # distance to the sun in au
-		SLong = LS + CS - (20.4898 / 3600 / DS) # true longitude of the sun
+		DS = old_div((1.000001018 * (1 - ES * ES)), (ES * math.cos((MS + CS) * DEG2RAD) + 1)) # distance to the sun in au
+		SLong = LS + CS - (old_div(20.4898 / 3600, DS)) # true longitude of the sun
 
 		# heliocentric coordinates
 		wP3 = 288.064
@@ -750,16 +754,16 @@ class GlamMSNWeather(Poll, Converter, object):
 		YE = DS * math.sin(WP3 * DEG2RAD) * math.cos((wP3 + MS) * DEG2RAD)
 		# ecliptic coordinates
 		DEC = math.asin(math.sin(EPS * DEG2RAD) * math.sin(SLong * DEG2RAD)) * RAD2DEG # declension
-		ALFA = (7.53 * math.cos(LS * DEG2RAD) + 1.5 * math.sin(LS * DEG2RAD) - 9.87 * math.sin(2 * LS * DEG2RAD)) / 60 #time equation
-		BETA = math.acos((math.cos(90.85 * DEG2RAD) - math.sin(DEC * DEG2RAD) * math.sin(lat * DEG2RAD)) / (math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD))) * RAD2DEG
-		SSS = ALFA + (180 - long) / 15 + zone
+		ALFA = old_div((7.53 * math.cos(LS * DEG2RAD) + 1.5 * math.sin(LS * DEG2RAD) - 9.87 * math.sin(2 * LS * DEG2RAD)), 60) #time equation
+		BETA = math.acos(old_div((math.cos(90.85 * DEG2RAD) - math.sin(DEC * DEG2RAD) * math.sin(lat * DEG2RAD)), (math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD)))) * RAD2DEG
+		SSS = ALFA + old_div((180 - int), 15) + zone
 # Sunrise / sunset time
 		SCh = int(SSS)
 		SCm = int(round((SSS - SCh) * 60))
-		SRh = int(SSS - BETA / 15)
-		SRm = int(round(((SSS - BETA / 15) - SRh) * 60))
-		SSh = int(SSS + BETA / 15)
-		SSm = int(round(((SSS + BETA / 15) - SSh) * 60))
+		SRh = int(SSS - old_div(BETA, 15))
+		SRm = int(round(((SSS - old_div(BETA, 15)) - SRh) * 60))
+		SSh = int(SSS + old_div(BETA, 15))
+		SSm = int(round(((SSS + old_div(BETA, 15)) - SSh) * 60))
 		if SCm == 60:
 			SCm = 0
 			SCh = SCh + 1
@@ -782,7 +786,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		else:
 			SSx = ''
 # Planet orbits
-		T = (JDN - 2451545) / 36525
+		T = old_div((JDN - 2451545), 36525)
 		MP1 = 102.27938 + 149472.51529 * T + 0.000007 * T * T
 		MP2 = 212.60322 + 58517.80387 * T + 0.001286 * T * T
 		MP3 = 358.47583 + 35999.04975 * T - 0.000150 * T * T - 0.0000033 * T * T * T
@@ -806,7 +810,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		LP = LP1 + EL
 		M0 = math.fmod(174.795 + 4.092317 * (JDN - 2451545), 360) # Wed anomaly
 		MP = M0 - EP1 * math.sin(M0 * DEG2RAD) # the Kepler equation
-		DP = (0.3870986 * (1 - EP1 * EP1)) / (EP1 * math.cos((MP + LP) * DEG2RAD) + 1) # distance to the sun in au
+		DP = old_div((0.3870986 * (1 - EP1 * EP1)), (EP1 * math.cos((MP + LP) * DEG2RAD) + 1)) # distance to the sun in au
 		# heliocentric coordinates
 		XP = DP * (math.cos(WP1 * DEG2RAD) * math.cos((wP1 + MP) * DEG2RAD) - math.sin(WP1 * DEG2RAD) * math.cos(IP1 * DEG2RAD) * math.sin((wP1 + MP) * DEG2RAD))
 		YP = DP * (math.sin(WP1 * DEG2RAD) * math.cos((wP1 + MP) * DEG2RAD) + math.cos(WP1 * DEG2RAD) * math.cos(IP1 * DEG2RAD) * math.sin((wP1 + MP) * DEG2RAD))
@@ -817,23 +821,23 @@ class GlamMSNWeather(Poll, Converter, object):
 		ZP = ZP
 		# ecliptic coordinates
 		PLong =  math.atan2(YP, XP) * RAD2DEG
-		PLat = math.asin(ZP / math.sqrt(XP * XP + YP * YP + ZP * ZP)) * RAD2DEG
+		PLat = math.asin(old_div(ZP, math.sqrt(XP * XP + YP * YP + ZP * ZP))) * RAD2DEG
 
 		RA = math.atan2((math.sin(PLong * DEG2RAD) * math.cos(EPS * DEG2RAD) - math.tan(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD)) , math.cos(PLong * DEG2RAD)) * RAD2DEG # right ascension
 		if RA < 0:
 			RA = RA + 2 * PI
 		DEC = math.asin(math.sin(PLat * DEG2RAD) * math.cos(EPS * DEG2RAD) + math.cos(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD) * math.sin(PLong * DEG2RAD)) * RAD2DEG # declension
-		BETA = math.acos((math.cos(90.35 * DEG2RAD) - math.sin(DEC * DEG2RAD) * math.sin(lat * DEG2RAD)) / (math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD))) * RAD2DEG # hour angle
-		SPR = math.fmod((RA - BETA + long - STT * 15 - zone * 15 * 1.0027379093) / 15 * 0.997269566423530, 24)
+		BETA = math.acos(old_div((math.cos(90.35 * DEG2RAD) - math.sin(DEC * DEG2RAD) * math.sin(lat * DEG2RAD)), (math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD)))) * RAD2DEG # hour angle
+		SPR = math.fmod(old_div((RA - BETA + int - STT * 15 - zone * 15 * 1.0027379093), 15) * 0.997269566423530, 24)
 		if SPR < 0:
 			SPR = SPR + 24
-		SPS = math.fmod((RA + BETA + long - STT * 15 - zone * 15 * 1.0027379093) / 15 * 0.997269566423530, 24)
+		SPS = math.fmod(old_div((RA + BETA + int - STT * 15 - zone * 15 * 1.0027379093), 15) * 0.997269566423530, 24)
 		if SPS < 0:
 			SPS = SPS + 24
 		if SPR < SPS:
-			SPC = (SPR + SPS) / 2
+			SPC = old_div((SPR + SPS), 2)
 		else:
-			SPC = (SPR + SPS) / 2 + 12
+			SPC = old_div((SPR + SPS), 2) + 12
 			if SPC >= 24:
 				SPC = SPC - 24
 # Sunrise / sunset time
@@ -882,7 +886,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		LP = LP2 + EL + CP
 		M0 = math.fmod(50.416 + 1.602136 * (JDN - 2451545), 360) # Wed anomaly
 		MP = M0 - EP2 * math.sin(M0 * DEG2RAD) # the Kepler equation
-		DP = (0.7233316 * (1 - EP2 * EP2)) / (EP2 * math.cos((MP + LP) * DEG2RAD) + 1) # distance to the sun in au
+		DP = old_div((0.7233316 * (1 - EP2 * EP2)), (EP2 * math.cos((MP + LP) * DEG2RAD) + 1)) # distance to the sun in au
 		# heliocentric coordinates
 		XP = DP * (math.cos(WP2 * DEG2RAD) * math.cos((wP2 + MP) * DEG2RAD) - math.sin(WP2 * DEG2RAD) * math.cos(IP2 * DEG2RAD) * math.sin((wP2 + MP) * DEG2RAD))
 		YP = DP * (math.sin(WP2 * DEG2RAD) * math.cos((wP2 + MP) * DEG2RAD) + math.cos(WP2 * DEG2RAD) * math.cos(IP2 * DEG2RAD) * math.sin((wP2 + MP) * DEG2RAD))
@@ -893,23 +897,23 @@ class GlamMSNWeather(Poll, Converter, object):
 		ZP = ZP
 		# ecliptic coordinates
 		PLong =  math.atan2(YP, XP) * RAD2DEG
-		PLat = math.asin(ZP / math.sqrt(XP * XP + YP * YP + ZP * ZP)) * RAD2DEG
+		PLat = math.asin(old_div(ZP, math.sqrt(XP * XP + YP * YP + ZP * ZP))) * RAD2DEG
 
 		RA = math.atan2((math.sin(PLong * DEG2RAD) * math.cos(EPS * DEG2RAD) - math.tan(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD)) , math.cos(PLong * DEG2RAD)) * RAD2DEG # right ascension
 		if RA < 0:
 			RA = RA + 2 * PI
 		DEC = math.asin(math.sin(PLat * DEG2RAD) * math.cos(EPS * DEG2RAD) + math.cos(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD) * math.sin(PLong * DEG2RAD)) * RAD2DEG # declension
-		BETA = math.acos((math.cos(90.35 * DEG2RAD) - math.sin(DEC * DEG2RAD) * math.sin(lat * DEG2RAD)) / (math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD))) * RAD2DEG # hour angle
-		SPR = math.fmod((RA - BETA + long - STT * 15 - zone * 15 * 1.0027379093) / 15 * 0.997269566423530, 24)
+		BETA = math.acos(old_div((math.cos(90.35 * DEG2RAD) - math.sin(DEC * DEG2RAD) * math.sin(lat * DEG2RAD)), (math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD)))) * RAD2DEG # hour angle
+		SPR = math.fmod(old_div((RA - BETA + int - STT * 15 - zone * 15 * 1.0027379093), 15) * 0.997269566423530, 24)
 		if SPR < 0:
 			SPR = SPR + 24
-		SPS = math.fmod((RA + BETA + long - STT * 15 - zone * 15 * 1.0027379093) / 15 * 0.997269566423530, 24)
+		SPS = math.fmod(old_div((RA + BETA + int - STT * 15 - zone * 15 * 1.0027379093), 15) * 0.997269566423530, 24)
 		if SPS < 0:
 			SPS = SPS + 24
 		if SPR < SPS:
-			SPC = (SPR + SPS) / 2
+			SPC = old_div((SPR + SPS), 2)
 		else:
-			SPC = (SPR + SPS) / 2 + 12
+			SPC = old_div((SPR + SPS), 2) + 12
 			if SPC >= 24:
 				SPC = SPC - 24
 # Sunrise / sunset time
@@ -963,7 +967,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		LP = LP4 + EL + CP
 		M0 = math.fmod(19.373 + 0.524039 * (JDN - 2451545), 360) # Wed anomaly
 		MP = M0 - EP4 * math.sin(M0 * DEG2RAD) # the Kepler equation
-		DP = (1.5236883 * (1 - EP4 * EP4)) / (EP4 * math.cos((MP + LP) * DEG2RAD) + 1) # distance to the sun in au
+		DP = old_div((1.5236883 * (1 - EP4 * EP4)), (EP4 * math.cos((MP + LP) * DEG2RAD) + 1)) # distance to the sun in au
 		# heliocentric coordinates
 		XP = DP * (math.cos(WP4 * DEG2RAD) * math.cos((wP4 + MP) * DEG2RAD) - math.sin(WP4 * DEG2RAD) * math.cos(IP4 * DEG2RAD) * math.sin((wP4 + MP) * DEG2RAD))
 		YP = DP * (math.sin(WP4 * DEG2RAD) * math.cos((wP4 + MP) * DEG2RAD) + math.cos(WP4 * DEG2RAD) * math.cos(IP4 * DEG2RAD) * math.sin((wP4 + MP) * DEG2RAD))
@@ -974,23 +978,23 @@ class GlamMSNWeather(Poll, Converter, object):
 		ZP = ZP
 		# ecliptic coordinates
 		PLong =  math.atan2(YP, XP) * RAD2DEG
-		PLat = math.asin(ZP / math.sqrt(XP * XP + YP * YP + ZP * ZP)) * RAD2DEG
+		PLat = math.asin(old_div(ZP, math.sqrt(XP * XP + YP * YP + ZP * ZP))) * RAD2DEG
 
 		RA = math.atan2((math.sin(PLong * DEG2RAD) * math.cos(EPS * DEG2RAD) - math.tan(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD)) , math.cos(PLong * DEG2RAD)) * RAD2DEG # right ascension
 		if RA < 0:
 			RA = RA + 2 * PI
 		DEC = math.asin(math.sin(PLat * DEG2RAD) * math.cos(EPS * DEG2RAD) + math.cos(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD) * math.sin(PLong * DEG2RAD)) * RAD2DEG # declension
-		BETA = math.acos((math.cos(90.35 * DEG2RAD) - math.sin(DEC * DEG2RAD) * math.sin(lat * DEG2RAD)) / (math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD))) * RAD2DEG # hour angle
-		SPR = math.fmod((RA - BETA + long - STT * 15 - zone * 15 * 1.0027379093) / 15 * 0.997269566423530, 24)
+		BETA = math.acos(old_div((math.cos(90.35 * DEG2RAD) - math.sin(DEC * DEG2RAD) * math.sin(lat * DEG2RAD)), (math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD)))) * RAD2DEG # hour angle
+		SPR = math.fmod(old_div((RA - BETA + int - STT * 15 - zone * 15 * 1.0027379093), 15) * 0.997269566423530, 24)
 		if SPR < 0:
 			SPR = SPR + 24
-		SPS = math.fmod((RA + BETA + long - STT * 15 - zone * 15 * 1.0027379093) / 15 * 0.997269566423530, 24)
+		SPS = math.fmod(old_div((RA + BETA + int - STT * 15 - zone * 15 * 1.0027379093), 15) * 0.997269566423530, 24)
 		if SPS < 0:
 			SPS = SPS + 24
 		if SPR < SPS:
-			SPC = (SPR + SPS) / 2
+			SPC = old_div((SPR + SPS), 2)
 		else:
-			SPC = (SPR + SPS) / 2 + 12
+			SPC = old_div((SPR + SPS), 2) + 12
 			if SPC >= 24:
 				SPC = SPC - 24
 # Sunrise / sunset time
@@ -1064,7 +1068,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		LP = LP5 + EL
 		M0 = math.fmod(20.020 + 0.083056 * (JDN - 2451545), 360) # Wed anomaly
 		MP = M0 - EP5 * math.sin(M0 * DEG2RAD) # the Kepler equation
-		DP = (5.202561 * (1 - EP5 * EP5)) / (EP5 * math.cos((MP + LP) * DEG2RAD) + 1) # distance to the sun in au
+		DP = old_div((5.202561 * (1 - EP5 * EP5)), (EP5 * math.cos((MP + LP) * DEG2RAD) + 1)) # distance to the sun in au
 		# heliocentric coordinates
 		XP = DP * (math.cos(WP5 * DEG2RAD) * math.cos((wP5 + MP) * DEG2RAD) - math.sin(WP5 * DEG2RAD) * math.cos(IP5 * DEG2RAD) * math.sin((wP5 + MP) * DEG2RAD))
 		YP = DP * (math.sin(WP5 * DEG2RAD) * math.cos((wP5 + MP) * DEG2RAD) + math.cos(WP5 * DEG2RAD) * math.cos(IP5 * DEG2RAD) * math.sin((wP5 + MP) * DEG2RAD))
@@ -1075,23 +1079,23 @@ class GlamMSNWeather(Poll, Converter, object):
 		ZP = ZP
 		# ecliptic coordinates
 		PLong =  math.atan2(YP, XP) * RAD2DEG
-		PLat = math.asin(ZP / math.sqrt(XP * XP + YP * YP + ZP * ZP)) * RAD2DEG
+		PLat = math.asin(old_div(ZP, math.sqrt(XP * XP + YP * YP + ZP * ZP))) * RAD2DEG
 
 		RA = math.atan2((math.sin(PLong * DEG2RAD) * math.cos(EPS * DEG2RAD) - math.tan(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD)) , math.cos(PLong * DEG2RAD)) * RAD2DEG # right ascension
 		if RA < 0:
 			RA = RA + 2 * PI
 		DEC = math.asin(math.sin(PLat * DEG2RAD) * math.cos(EPS * DEG2RAD) + math.cos(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD) * math.sin(PLong * DEG2RAD)) * RAD2DEG # declension
-		BETA = math.acos((math.cos(90.35 * DEG2RAD) - math.sin(DEC * DEG2RAD) * math.sin(lat * DEG2RAD)) / (math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD))) * RAD2DEG # hour angle
-		SPR = math.fmod((RA - BETA + long - STT * 15 - zone * 15 * 1.0027379093) / 15 * 0.997269566423530, 24)
+		BETA = math.acos(old_div((math.cos(90.35 * DEG2RAD) - math.sin(DEC * DEG2RAD) * math.sin(lat * DEG2RAD)), (math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD)))) * RAD2DEG # hour angle
+		SPR = math.fmod(old_div((RA - BETA + int - STT * 15 - zone * 15 * 1.0027379093), 15) * 0.997269566423530, 24)
 		if SPR < 0:
 			SPR = SPR + 24
-		SPS = math.fmod((RA + BETA + long - STT * 15 - zone * 15 * 1.0027379093) / 15 * 0.997269566423530, 24)
+		SPS = math.fmod(old_div((RA + BETA + int - STT * 15 - zone * 15 * 1.0027379093), 15) * 0.997269566423530, 24)
 		if SPS < 0:
 			SPS = SPS + 24
 		if SPR < SPS:
-			SPC = (SPR + SPS) / 2
+			SPC = old_div((SPR + SPS), 2)
 		else:
-			SPC = (SPR + SPS) / 2 + 12
+			SPC = old_div((SPR + SPS), 2) + 12
 			if SPC >= 24:
 				SPC = SPC - 24
 # Sunrise / sunset time
@@ -1168,7 +1172,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		LP = LP6 + EL
 		M0 = math.fmod(317.021 + 0.033371 * (JDN - 2451545), 360) # Wed anomaly
 		MP = M0 - EP6 * math.sin(M0 * DEG2RAD) # the Kepler equation
-		DP = (9.554747 * (1 - EP6 * EP6)) / (EP6 * math.cos((MP + LP) * DEG2RAD) + 1) # distance to the sun in au
+		DP = old_div((9.554747 * (1 - EP6 * EP6)), (EP6 * math.cos((MP + LP) * DEG2RAD) + 1)) # distance to the sun in au
 		# heliocentric coordinates
 		XP = DP * (math.cos(WP6 * DEG2RAD) * math.cos((wP6 + MP) * DEG2RAD) - math.sin(WP6 * DEG2RAD) * math.cos(IP6 * DEG2RAD) * math.sin((wP6 + MP) * DEG2RAD))
 		YP = DP * (math.sin(WP6 * DEG2RAD) * math.cos((wP6 + MP) * DEG2RAD) + math.cos(WP6 * DEG2RAD) * math.cos(IP6 * DEG2RAD) * math.sin((wP6 + MP) * DEG2RAD))
@@ -1179,23 +1183,23 @@ class GlamMSNWeather(Poll, Converter, object):
 		ZP = ZP
 		# ecliptic coordinates
 		PLong =  math.atan2(YP, XP) * RAD2DEG
-		PLat = math.asin(ZP / math.sqrt(XP * XP + YP * YP + ZP * ZP)) * RAD2DEG
+		PLat = math.asin(old_div(ZP, math.sqrt(XP * XP + YP * YP + ZP * ZP))) * RAD2DEG
 
 		RA = math.atan2((math.sin(PLong * DEG2RAD) * math.cos(EPS * DEG2RAD) - math.tan(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD)) , math.cos(PLong * DEG2RAD)) * RAD2DEG # right ascension
 		if RA < 0:
 			RA = RA + 2 * PI
 		DEC = math.asin(math.sin(PLat * DEG2RAD) * math.cos(EPS * DEG2RAD) + math.cos(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD) * math.sin(PLong * DEG2RAD)) * RAD2DEG # declension
-		BETA = math.acos((math.cos(90.35 * DEG2RAD) - math.sin(DEC * DEG2RAD) * math.sin(lat * DEG2RAD)) / (math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD))) * RAD2DEG # hour angle
-		SPR = math.fmod((RA - BETA + long - STT * 15 - zone * 15 * 1.0027379093) / 15 * 0.997269566423530, 24)
+		BETA = math.acos(old_div((math.cos(90.35 * DEG2RAD) - math.sin(DEC * DEG2RAD) * math.sin(lat * DEG2RAD)), (math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD)))) * RAD2DEG # hour angle
+		SPR = math.fmod(old_div((RA - BETA + int - STT * 15 - zone * 15 * 1.0027379093), 15) * 0.997269566423530, 24)
 		if SPR < 0:
 			SPR = SPR + 24
-		SPS = math.fmod((RA + BETA + long - STT * 15 - zone * 15 * 1.0027379093) / 15 * 0.997269566423530, 24)
+		SPS = math.fmod(old_div((RA + BETA + int - STT * 15 - zone * 15 * 1.0027379093), 15) * 0.997269566423530, 24)
 		if SPS < 0:
 			SPS = SPS + 24
 		if SPR < SPS:
-			SPC = (SPR + SPS) / 2
+			SPC = old_div((SPR + SPS), 2)
 		else:
-			SPC = (SPR + SPS) / 2 + 12
+			SPC = old_div((SPR + SPS), 2) + 12
 			if SPC >= 24:
 				SPC = SPC - 24
 # Sunrise / sunset time
@@ -1250,7 +1254,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		LP = LP7 + EL
 		M0 = math.fmod(141.050 + 0.011698 * (JDN - 2451545), 360) # Wed anomaly
 		MP = M0 - EP7 * math.sin(M0 * DEG2RAD) # the Kepler equation
-		DP = (19.21814 * (1 - EP7 * EP7)) / (EP7 * math.cos((MP + LP) * DEG2RAD) + 1) # distance to the sun in au
+		DP = old_div((19.21814 * (1 - EP7 * EP7)), (EP7 * math.cos((MP + LP) * DEG2RAD) + 1)) # distance to the sun in au
 		# heliocentric coordinates
 		XP = DP * (math.cos(WP7 * DEG2RAD) * math.cos((wP7 + MP) * DEG2RAD) - math.sin(WP7 * DEG2RAD) * math.cos(IP7 * DEG2RAD) * math.sin((wP7 + MP) * DEG2RAD))
 		YP = DP * (math.sin(WP7 * DEG2RAD) * math.cos((wP7 + MP) * DEG2RAD) + math.cos(WP7 * DEG2RAD) * math.cos(IP7 * DEG2RAD) * math.sin((wP7 + MP) * DEG2RAD))
@@ -1261,23 +1265,23 @@ class GlamMSNWeather(Poll, Converter, object):
 		ZP = ZP
 		# ecliptic coordinates
 		PLong =  math.atan2(YP, XP) * RAD2DEG
-		PLat = math.asin(ZP / math.sqrt(XP * XP + YP * YP + ZP * ZP)) * RAD2DEG
+		PLat = math.asin(old_div(ZP, math.sqrt(XP * XP + YP * YP + ZP * ZP))) * RAD2DEG
 
 		RA = math.atan2((math.sin(PLong * DEG2RAD) * math.cos(EPS * DEG2RAD) - math.tan(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD)) , math.cos(PLong * DEG2RAD)) * RAD2DEG # right ascension
 		if RA < 0:
 			RA = RA + 2 * PI
 		DEC = math.asin(math.sin(PLat * DEG2RAD) * math.cos(EPS * DEG2RAD) + math.cos(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD) * math.sin(PLong * DEG2RAD)) * RAD2DEG # declension
-		BETA = math.acos((math.cos(90.35 * DEG2RAD) - math.sin(DEC * DEG2RAD) * math.sin(lat * DEG2RAD)) / (math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD))) * RAD2DEG # hour angle
-		SPR = math.fmod((RA - BETA + long - STT * 15 - zone * 15 * 1.0027379093) / 15 * 0.997269566423530, 24)
+		BETA = math.acos(old_div((math.cos(90.35 * DEG2RAD) - math.sin(DEC * DEG2RAD) * math.sin(lat * DEG2RAD)), (math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD)))) * RAD2DEG # hour angle
+		SPR = math.fmod(old_div((RA - BETA + int - STT * 15 - zone * 15 * 1.0027379093), 15) * 0.997269566423530, 24)
 		if SPR < 0:
 			SPR = SPR + 24
-		SPS = math.fmod((RA + BETA + long - STT * 15 - zone * 15 * 1.0027379093) / 15 * 0.997269566423530, 24)
+		SPS = math.fmod(old_div((RA + BETA + int - STT * 15 - zone * 15 * 1.0027379093), 15) * 0.997269566423530, 24)
 		if SPS < 0:
 			SPS = SPS + 24
 		if SPR < SPS:
-			SPC = (SPR + SPS) / 2
+			SPC = old_div((SPR + SPS), 2)
 		else:
-			SPC = (SPR + SPS) / 2 + 12
+			SPC = old_div((SPR + SPS), 2) + 12
 			if SPC >= 24:
 				SPC = SPC - 24
 # Sunrise / sunset time
@@ -1327,7 +1331,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		LP = LP8 + EL
 		M0 = math.fmod(256.225 + 0.005965 * (JDN - 2451545), 360) # Wed anomaly
 		MP = M0 - EP8 * math.sin(M0 * DEG2RAD) # the Kepler equation
-		DP = (30.10957 * (1 - EP8 * EP8)) / (EP8 * math.cos((MP + LP) * DEG2RAD) + 1) # distance to the sun in au
+		DP = old_div((30.10957 * (1 - EP8 * EP8)), (EP8 * math.cos((MP + LP) * DEG2RAD) + 1)) # distance to the sun in au
 		# heliocentric coordinates
 		XP = DP * (math.cos(WP8 * DEG2RAD) * math.cos((wP8 + MP) * DEG2RAD) - math.sin(WP8 * DEG2RAD) * math.cos(IP8 * DEG2RAD) * math.sin((wP8 + MP) * DEG2RAD))
 		YP = DP * (math.sin(WP8 * DEG2RAD) * math.cos((wP8 + MP) * DEG2RAD) + math.cos(WP8 * DEG2RAD) * math.cos(IP8 * DEG2RAD) * math.sin((wP8 + MP) * DEG2RAD))
@@ -1338,23 +1342,23 @@ class GlamMSNWeather(Poll, Converter, object):
 		ZP = ZP
 		# ecliptic coordinates
 		PLong =  math.atan2(YP, XP) * RAD2DEG
-		PLat = math.asin(ZP / math.sqrt(XP * XP + YP * YP + ZP * ZP)) * RAD2DEG
+		PLat = math.asin(old_div(ZP, math.sqrt(XP * XP + YP * YP + ZP * ZP))) * RAD2DEG
 
 		RA = math.atan2((math.sin(PLong * DEG2RAD) * math.cos(EPS * DEG2RAD) - math.tan(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD)) , math.cos(PLong * DEG2RAD)) * RAD2DEG # right ascension
 		if RA < 0:
 			RA = RA + 2 * PI
 		DEC = math.asin(math.sin(PLat * DEG2RAD) * math.cos(EPS * DEG2RAD) + math.cos(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD) * math.sin(PLong * DEG2RAD)) * RAD2DEG # declension
-		BETA = math.acos((math.cos(90.35 * DEG2RAD) - math.sin(DEC * DEG2RAD) * math.sin(lat * DEG2RAD)) / (math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD))) * RAD2DEG # hour angle
-		SPR = math.fmod((RA - BETA + long - STT * 15 - zone * 15 * 1.0027379093) / 15 * 0.997269566423530, 24)
+		BETA = math.acos(old_div((math.cos(90.35 * DEG2RAD) - math.sin(DEC * DEG2RAD) * math.sin(lat * DEG2RAD)), (math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD)))) * RAD2DEG # hour angle
+		SPR = math.fmod(old_div((RA - BETA + int - STT * 15 - zone * 15 * 1.0027379093), 15) * 0.997269566423530, 24)
 		if SPR < 0:
 			SPR = SPR + 24
-		SPS = math.fmod((RA + BETA + long - STT * 15 - zone * 15 * 1.0027379093) / 15 * 0.997269566423530, 24)
+		SPS = math.fmod(old_div((RA + BETA + int - STT * 15 - zone * 15 * 1.0027379093), 15) * 0.997269566423530, 24)
 		if SPS < 0:
 			SPS = SPS + 24
 		if SPR < SPS:
-			SPC = (SPR + SPS) / 2
+			SPC = old_div((SPR + SPS), 2)
 		else:
-			SPC = (SPR + SPS) / 2 + 12
+			SPC = old_div((SPR + SPS), 2) + 12
 			if SPC >= 24:
 				SPC = SPC - 24
 # Sunrise / sunset time
@@ -1386,11 +1390,11 @@ class GlamMSNWeather(Poll, Converter, object):
 		else:
 			P8Sx = ''
 # Moon orbit
-		LM = 218.3164477 + 481267.88123421 * T - 0.0015786 * T * T + T * T * T / 538841 - T * T * T * T / 65194000 # ср longitude of the moon
-		FM = 93.272095 + 483202.0175233 * T - 0.0036539 * T * T - T * T * T / 3526000 + T * T * T * T / 863310000 # cf the argument of the breadth of the moon
-		DM = 297.8501921 + 445267.114034 * T - 0.0018819 * T * T + T * T * T / 545868 - T * T * T * T / 113065000 # Wed moon elongation
-		MS = 357.5291092 + 35999.0502909 * T - 0.0001536 * T * T + T * T * T / 24490000 # Wed solar anomaly
-		MM = 134.9633964 + 477198.8675055 * T + 0.0087414 * T * T + T * T * T / 69699 - T * T * T * T / 14712000 # Wed moon anomaly
+		LM = 218.3164477 + 481267.88123421 * T - 0.0015786 * T * T + old_div(T * T * T, 538841) - old_div(T * T * T * T, 65194000) # ср longitude of the moon
+		FM = 93.272095 + 483202.0175233 * T - 0.0036539 * T * T - old_div(T * T * T, 3526000) + old_div(T * T * T * T, 863310000) # cf the argument of the breadth of the moon
+		DM = 297.8501921 + 445267.114034 * T - 0.0018819 * T * T + old_div(T * T * T, 545868) - old_div(T * T * T * T, 113065000) # Wed moon elongation
+		MS = 357.5291092 + 35999.0502909 * T - 0.0001536 * T * T + old_div(T * T * T, 24490000) # Wed solar anomaly
+		MM = 134.9633964 + 477198.8675055 * T + 0.0087414 * T * T + old_div(T * T * T, 69699) - old_div(T * T * T * T, 14712000) # Wed moon anomaly
 		EM = 1 - 0.002516 * T - 0.0000074 * T * T # variable eccentricity correction
 
 		EL = 6.289 * math.sin(MM * DEG2RAD)\
@@ -1425,17 +1429,17 @@ class GlamMSNWeather(Poll, Converter, object):
 		DEC = math.asin(math.sin(MLat * DEG2RAD) * math.cos(EPS * DEG2RAD) + math.cos(MLat * DEG2RAD) * math.sin(EPS * DEG2RAD) * math.sin(MLong * DEG2RAD)) * RAD2DEG # declension
 		if RA < 0:
 			RA = RA + 2 * PI
-		BETA = math.acos((math.cos(89.55 * DEG2RAD) - math.sin(DEC * DEG2RAD) * math.sin(lat * DEG2RAD)) / (math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD))) * RAD2DEG # hour angle
-		SMR = math.fmod((RA - BETA - long - STT * 15 + zone * 15 * 1.0027379093) / 15 * 0.997269566423530, 24)
+		BETA = math.acos(old_div((math.cos(89.55 * DEG2RAD) - math.sin(DEC * DEG2RAD) * math.sin(lat * DEG2RAD)), (math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD)))) * RAD2DEG # hour angle
+		SMR = math.fmod(old_div((RA - BETA - int - STT * 15 + zone * 15 * 1.0027379093), 15) * 0.997269566423530, 24)
 		if SMR < 0:
 			SMR = SMR + 24
-		SMS = math.fmod((RA + BETA - long - STT * 15 + zone * 15 * 1.0027379093) / 15 * 0.997269566423530, 24)
+		SMS = math.fmod(old_div((RA + BETA - int - STT * 15 + zone * 15 * 1.0027379093), 15) * 0.997269566423530, 24)
 		if SMS < 0:
 			SMS = SMS + 24
 		if SMR < SMS:
-			SMC = (SMR + SMS) / 2
+			SMC = old_div((SMR + SMS), 2)
 		else:
-			SMC = (SMR + SMS) / 2 + 12
+			SMC = old_div((SMR + SMS), 2) + 12
 			if SMC >= 24:
 				SMC = SMC - 24
 # Sunrise / sunset time
@@ -1468,7 +1472,7 @@ class GlamMSNWeather(Poll, Converter, object):
 			MSx = ''
 # Azimuth
 # Planet orbits
-		T = (JD - 2451545) / 36525
+		T = old_div((JD - 2451545), 36525)
 		MP1 = 102.27938 + 149472.51529 * T + 0.000007 * T * T
 		MP2 = 212.60322 + 58517.80387 * T + 0.001286 * T * T
 		MP3 = 358.47583 + 35999.04975 * T - 0.000150 * T * T - 0.0000033 * T * T * T
@@ -1492,7 +1496,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		LP = LP1 + EL
 		M0 = math.fmod(174.795 + 4.092317 * (JDN - 2451545), 360) # Wed anomaly
 		MP = M0 - EP1 * math.sin(M0 * DEG2RAD) # the Kepler equation
-		DP = (0.3870986 * (1 - EP1 * EP1)) / (EP1 * math.cos((MP + LP) * DEG2RAD) + 1) # distance to the sun in au
+		DP = old_div((0.3870986 * (1 - EP1 * EP1)), (EP1 * math.cos((MP + LP) * DEG2RAD) + 1)) # distance to the sun in au
 		# heliocentric coordinates
 		XP = DP * (math.cos(WP1 * DEG2RAD) * math.cos((wP1 + MP) * DEG2RAD) - math.sin(WP1 * DEG2RAD) * math.cos(IP1 * DEG2RAD) * math.sin((wP1 + MP) * DEG2RAD))
 		YP = DP * (math.sin(WP1 * DEG2RAD) * math.cos((wP1 + MP) * DEG2RAD) + math.cos(WP1 * DEG2RAD) * math.cos(IP1 * DEG2RAD) * math.sin((wP1 + MP) * DEG2RAD))
@@ -1503,7 +1507,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		ZP = ZP
 		# ecliptic coordinates
 		PLong =  math.atan2(YP, XP) * RAD2DEG
-		PLat = math.asin(ZP / math.sqrt(XP * XP + YP * YP + ZP * ZP)) * RAD2DEG
+		PLat = math.asin(old_div(ZP, math.sqrt(XP * XP + YP * YP + ZP * ZP))) * RAD2DEG
 
 		RA = math.atan2((math.sin(PLong * DEG2RAD) * math.cos(EPS * DEG2RAD) - math.tan(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD)) , math.cos(PLong * DEG2RAD)) * RAD2DEG # right ascension
 		if RA < 0:
@@ -1532,7 +1536,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		LP = LP2 + EL + CP
 		M0 = math.fmod(50.416 + 1.602136 * (JDN - 2451545), 360) # Wed anomaly
 		MP = M0 - EP2 * math.sin(M0 * DEG2RAD) # the Kepler equation
-		DP = (0.7233316 * (1 - EP2 * EP2)) / (EP2 * math.cos((MP + LP) * DEG2RAD) + 1) # distance to the sun in au
+		DP = old_div((0.7233316 * (1 - EP2 * EP2)), (EP2 * math.cos((MP + LP) * DEG2RAD) + 1)) # distance to the sun in au
 		# heliocentric coordinates
 		XP = DP * (math.cos(WP2 * DEG2RAD) * math.cos((wP2 + MP) * DEG2RAD) - math.sin(WP2 * DEG2RAD) * math.cos(IP2 * DEG2RAD) * math.sin((wP2 + MP) * DEG2RAD))
 		YP = DP * (math.sin(WP2 * DEG2RAD) * math.cos((wP2 + MP) * DEG2RAD) + math.cos(WP2 * DEG2RAD) * math.cos(IP2 * DEG2RAD) * math.sin((wP2 + MP) * DEG2RAD))
@@ -1543,7 +1547,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		ZP = ZP
 		# ecliptic coordinates
 		PLong =  math.atan2(YP, XP) * RAD2DEG
-		PLat = math.asin(ZP / math.sqrt(XP * XP + YP * YP + ZP * ZP)) * RAD2DEG
+		PLat = math.asin(old_div(ZP, math.sqrt(XP * XP + YP * YP + ZP * ZP))) * RAD2DEG
 
 		RA = math.atan2((math.sin(PLong * DEG2RAD) * math.cos(EPS * DEG2RAD) - math.tan(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD)) , math.cos(PLong * DEG2RAD)) * RAD2DEG # right ascension
 		if RA < 0:
@@ -1577,7 +1581,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		LP = LP4 + EL + CP
 		M0 = math.fmod(19.373 + 0.524039 * (JDN - 2451545), 360) # Wed anomaly
 		MP = M0 - EP4 * math.sin(M0 * DEG2RAD) # the Kepler equation
-		DP = (1.5236883 * (1 - EP4 * EP4)) / (EP4 * math.cos((MP + LP) * DEG2RAD) + 1) # distance to the sun in au
+		DP = old_div((1.5236883 * (1 - EP4 * EP4)), (EP4 * math.cos((MP + LP) * DEG2RAD) + 1)) # distance to the sun in au
 		# heliocentric coordinates
 		XP = DP * (math.cos(WP4 * DEG2RAD) * math.cos((wP4 + MP) * DEG2RAD) - math.sin(WP4 * DEG2RAD) * math.cos(IP4 * DEG2RAD) * math.sin((wP4 + MP) * DEG2RAD))
 		YP = DP * (math.sin(WP4 * DEG2RAD) * math.cos((wP4 + MP) * DEG2RAD) + math.cos(WP4 * DEG2RAD) * math.cos(IP4 * DEG2RAD) * math.sin((wP4 + MP) * DEG2RAD))
@@ -1588,7 +1592,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		ZP = ZP
 		# ecliptic coordinates
 		PLong =  math.atan2(YP, XP) * RAD2DEG
-		PLat = math.asin(ZP / math.sqrt(XP * XP + YP * YP + ZP * ZP)) * RAD2DEG
+		PLat = math.asin(old_div(ZP, math.sqrt(XP * XP + YP * YP + ZP * ZP))) * RAD2DEG
 
 		RA = math.atan2((math.sin(PLong * DEG2RAD) * math.cos(EPS * DEG2RAD) - math.tan(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD)) , math.cos(PLong * DEG2RAD)) * RAD2DEG # right ascension
 		if RA < 0:
@@ -1642,7 +1646,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		LP = LP5 + EL
 		M0 = math.fmod(20.020 + 0.083056 * (JDN - 2451545), 360) # Wed anomaly
 		MP = M0 - EP5 * math.sin(M0 * DEG2RAD) # the Kepler equation
-		DP = (5.202561 * (1 - EP5 * EP5)) / (EP5 * math.cos((MP + LP) * DEG2RAD) + 1) # distance to the sun in au
+		DP = old_div((5.202561 * (1 - EP5 * EP5)), (EP5 * math.cos((MP + LP) * DEG2RAD) + 1)) # distance to the sun in au
 		# heliocentric coordinates
 		XP = DP * (math.cos(WP5 * DEG2RAD) * math.cos((wP5 + MP) * DEG2RAD) - math.sin(WP5 * DEG2RAD) * math.cos(IP5 * DEG2RAD) * math.sin((wP5 + MP) * DEG2RAD))
 		YP = DP * (math.sin(WP5 * DEG2RAD) * math.cos((wP5 + MP) * DEG2RAD) + math.cos(WP5 * DEG2RAD) * math.cos(IP5 * DEG2RAD) * math.sin((wP5 + MP) * DEG2RAD))
@@ -1653,7 +1657,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		ZP = ZP
 		# ecliptic coordinates
 		PLong =  math.atan2(YP, XP) * RAD2DEG
-		PLat = math.asin(ZP / math.sqrt(XP * XP + YP * YP + ZP * ZP)) * RAD2DEG
+		PLat = math.asin(old_div(ZP, math.sqrt(XP * XP + YP * YP + ZP * ZP))) * RAD2DEG
 
 		RA = math.atan2((math.sin(PLong * DEG2RAD) * math.cos(EPS * DEG2RAD) - math.tan(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD)) , math.cos(PLong * DEG2RAD)) * RAD2DEG # right ascension
 		if RA < 0:
@@ -1710,7 +1714,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		LP = LP6 + EL
 		M0 = math.fmod(317.021 + 0.033371 * (JDN - 2451545), 360) # Wed anomaly
 		MP = M0 - EP6 * math.sin(M0 * DEG2RAD) # the Kepler equation
-		DP = (9.554747 * (1 - EP6 * EP6)) / (EP6 * math.cos((MP + LP) * DEG2RAD) + 1) # distance to the sun in au
+		DP = old_div((9.554747 * (1 - EP6 * EP6)), (EP6 * math.cos((MP + LP) * DEG2RAD) + 1)) # distance to the sun in au
 		# heliocentric coordinates
 		XP = DP * (math.cos(WP6 * DEG2RAD) * math.cos((wP6 + MP) * DEG2RAD) - math.sin(WP6 * DEG2RAD) * math.cos(IP6 * DEG2RAD) * math.sin((wP6 + MP) * DEG2RAD))
 		YP = DP * (math.sin(WP6 * DEG2RAD) * math.cos((wP6 + MP) * DEG2RAD) + math.cos(WP6 * DEG2RAD) * math.cos(IP6 * DEG2RAD) * math.sin((wP6 + MP) * DEG2RAD))
@@ -1721,7 +1725,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		ZP = ZP
 		# ecliptic coordinates
 		PLong =  math.atan2(YP, XP) * RAD2DEG
-		PLat = math.asin(ZP / math.sqrt(XP * XP + YP * YP + ZP * ZP)) * RAD2DEG
+		PLat = math.asin(old_div(ZP, math.sqrt(XP * XP + YP * YP + ZP * ZP))) * RAD2DEG
 
 		RA = math.atan2((math.sin(PLong * DEG2RAD) * math.cos(EPS * DEG2RAD) - math.tan(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD)) , math.cos(PLong * DEG2RAD)) * RAD2DEG # right ascension
 		if RA < 0:
@@ -1755,8 +1759,8 @@ class GlamMSNWeather(Poll, Converter, object):
 
 		LP = LP7 + EL
 		M0 = math.fmod(141.050 + 0.011698 * (JDN - 2451545), 360) # Wed anomaly
-		MP = M0 + EP7 - EP7 * math.sin(M0 * DEG2RAD)/(-1.0 + EP7 * math.cos(M0 * DEG2RAD)) # the Kepler equation
-		DP = (19.21814 * (1 - EP7 * EP7)) / (EP7 * math.cos((MP + LP) * DEG2RAD) + 1) # distance to the sun in au
+		MP = M0 + EP7 - old_div(EP7 * math.sin(M0 * DEG2RAD),(-1.0 + EP7 * math.cos(M0 * DEG2RAD))) # the Kepler equation
+		DP = old_div((19.21814 * (1 - EP7 * EP7)), (EP7 * math.cos((MP + LP) * DEG2RAD) + 1)) # distance to the sun in au
 		# heliocentric coordinates
 		XP = DP * (math.cos(WP7 * DEG2RAD) * math.cos((wP7 + MP) * DEG2RAD) - math.sin(WP7 * DEG2RAD) * math.cos(IP7 * DEG2RAD) * math.sin((wP7 + MP) * DEG2RAD))
 		YP = DP * (math.sin(WP7 * DEG2RAD) * math.cos((wP7 + MP) * DEG2RAD) + math.cos(WP7 * DEG2RAD) * math.cos(IP7 * DEG2RAD) * math.sin((wP7 + MP) * DEG2RAD))
@@ -1767,7 +1771,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		ZP = ZP
 		# ecliptic coordinates
 		PLong =  math.atan2(YP, XP) * RAD2DEG
-		PLat = math.asin(ZP / math.sqrt(XP * XP + YP * YP + ZP * ZP)) * RAD2DEG
+		PLat = math.asin(old_div(ZP, math.sqrt(XP * XP + YP * YP + ZP * ZP))) * RAD2DEG
 
 		RA = math.atan2((math.sin(PLong * DEG2RAD) * math.cos(EPS * DEG2RAD) - math.tan(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD)) , math.cos(PLong * DEG2RAD)) * RAD2DEG # right ascension
 		if RA < 0:
@@ -1798,7 +1802,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		LP = LP8 + EL
 		M0 = math.fmod(256.225 + 0.005965 * (JDN - 2451545), 360) # Wed anomaly
 		MP = M0 - EP8 * math.sin(M0 * DEG2RAD) # the Kepler equation
-		DP = (30.10957 * (1 - EP8 * EP8)) / (EP8 * math.cos((MP + LP) * DEG2RAD) + 1) # distance to the sun in au
+		DP = old_div((30.10957 * (1 - EP8 * EP8)), (EP8 * math.cos((MP + LP) * DEG2RAD) + 1)) # distance to the sun in au
 		# heliocentric coordinates
 		XP = DP * (math.cos(WP8 * DEG2RAD) * math.cos((wP8 + MP) * DEG2RAD) - math.sin(WP8 * DEG2RAD) * math.cos(IP8 * DEG2RAD) * math.sin((wP8 + MP) * DEG2RAD))
 		YP = DP * (math.sin(WP8 * DEG2RAD) * math.cos((wP8 + MP) * DEG2RAD) + math.cos(WP8 * DEG2RAD) * math.cos(IP8 * DEG2RAD) * math.sin((wP8 + MP) * DEG2RAD))
@@ -1809,7 +1813,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		ZP = ZP
 		# ecliptic coordinates
 		PLong =  math.atan2(YP, XP) * RAD2DEG
-		PLat = math.asin(ZP / math.sqrt(XP * XP + YP * YP + ZP * ZP)) * RAD2DEG
+		PLat = math.asin(old_div(ZP, math.sqrt(XP * XP + YP * YP + ZP * ZP))) * RAD2DEG
 
 		RA = math.atan2((math.sin(PLong * DEG2RAD) * math.cos(EPS * DEG2RAD) - math.tan(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD)) , math.cos(PLong * DEG2RAD)) * RAD2DEG # right ascension
 		if RA < 0:
@@ -1821,11 +1825,11 @@ class GlamMSNWeather(Poll, Converter, object):
 		AZ = math.atan2(math.sin(TH * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD), math.sin(H * DEG2RAD) * math.sin(lat * DEG2RAD) - math.sin(DEC * DEG2RAD)) * RAD2DEG + 180 # azimuth + 180
 		P8A = round(AZ, 1)
 # Moon phases, distance to the moon, azimuth moon
-		LM = 218.3164477 + 481267.88123421 * T - 0.0015786 * T * T + T * T * T / 538841 - T * T * T * T / 65194000 # ср longitude of the moon
-		FM = 93.272095 + 483202.0175233 * T - 0.0036539 * T * T - T * T * T / 3526000 + T * T * T * T / 863310000 # cf the argument of the breadth of the moon
-		DM = 297.8501921 + 445267.114034 * T - 0.0018819 * T * T + T * T * T / 545868 - T * T * T * T / 113065000 # Wed moon elongation
-		MS = 357.5291092 + 35999.0502909 * T - 0.0001536 * T * T + T * T * T / 24490000 # Wed solar anomaly
-		MM = 134.9633964 + 477198.8675055 * T + 0.0087414 * T * T + T * T * T / 69699 - T * T * T * T / 14712000 # Wed moon anomaly
+		LM = 218.3164477 + 481267.88123421 * T - 0.0015786 * T * T + old_div(T * T * T, 538841) - old_div(T * T * T * T, 65194000) # ср longitude of the moon
+		FM = 93.272095 + 483202.0175233 * T - 0.0036539 * T * T - old_div(T * T * T, 3526000) + old_div(T * T * T * T, 863310000) # cf the argument of the breadth of the moon
+		DM = 297.8501921 + 445267.114034 * T - 0.0018819 * T * T + old_div(T * T * T, 545868) - old_div(T * T * T * T, 113065000) # Wed moon elongation
+		MS = 357.5291092 + 35999.0502909 * T - 0.0001536 * T * T + old_div(T * T * T, 24490000) # Wed solar anomaly
+		MM = 134.9633964 + 477198.8675055 * T + 0.0087414 * T * T + old_div(T * T * T, 69699) - old_div(T * T * T * T, 14712000) # Wed moon anomaly
 		EM = 1 - 0.002516 * T - 0.0000074 * T * T # variable eccentricity correction
 
 		EL = 6.289 * math.sin(MM * DEG2RAD)\
@@ -1885,7 +1889,7 @@ class GlamMSNWeather(Poll, Converter, object):
 			- 0.658 * math.sin(2 * DM * DEG2RAD)\
 			- 0.214 * math.sin(2 * MM * DEG2RAD)\
 			- 0.114 * math.sin(DM * DEG2RAD)
-		pha1 = (1 + math.cos(IM * DEG2RAD)) / 2
+		pha1 = old_div((1 + math.cos(IM * DEG2RAD)), 2)
 
 		MLat = math.fmod(EB, 360) # latitude
 		MLong = math.fmod(LM + EL, 360) # longitude
@@ -1901,10 +1905,10 @@ class GlamMSNWeather(Poll, Converter, object):
 		AZ = math.atan2(math.sin(TH * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD), math.sin(H * DEG2RAD) * math.sin(lat * DEG2RAD) - math.sin(DEC * DEG2RAD)) * RAD2DEG + 180 # azimuth + 180
 		MA = round(AZ, 1)
 #
-		T = (JD + 0.5 / 24 - 2451545) / 36525
-		DM = 297.8501921 + 445267.114034 * T - 0.0018819 * T * T + T * T * T / 545868 - T * T * T * T / 113065000 # Wed moon elongation
-		MS = 357.5291092 + 35999.0502909 * T - 0.0001536 * T * T + T * T * T / 24490000 # Wed solar anomaly
-		MM = 134.9633964 + 477198.8675055 * T + 0.0087414 * T * T + T * T * T / 69699 - T * T * T * T / 14712000 # Wed moon anomaly
+		T = old_div((JD + 0.5 / 24 - 2451545), 36525)
+		DM = 297.8501921 + 445267.114034 * T - 0.0018819 * T * T + old_div(T * T * T, 545868) - old_div(T * T * T * T, 113065000) # Wed moon elongation
+		MS = 357.5291092 + 35999.0502909 * T - 0.0001536 * T * T + old_div(T * T * T, 24490000) # Wed solar anomaly
+		MM = 134.9633964 + 477198.8675055 * T + 0.0087414 * T * T + old_div(T * T * T, 69699) - old_div(T * T * T * T, 14712000) # Wed moon anomaly
 		IM = 180 - DM\
 			- 6.289 * math.sin(MM * DEG2RAD)\
 			+ 2.100 * math.sin(MS * DEG2RAD)\
@@ -1912,7 +1916,7 @@ class GlamMSNWeather(Poll, Converter, object):
 			- 0.658 * math.sin(2 * DM * DEG2RAD)\
 			- 0.214 * math.sin(2 * MM * DEG2RAD)\
 			- 0.114 * math.sin(DM * DEG2RAD)
-		pha2 = (1 + math.cos(IM * DEG2RAD)) / 2
+		pha2 = old_div((1 + math.cos(IM * DEG2RAD)), 2)
 		if pha2 - pha1 < 0:
 			trend = -1
 		else:
@@ -2041,44 +2045,44 @@ class GlamMSNWeather(Poll, Converter, object):
 				phase = _('Full moon')
 		try:
 			msnweather['Julianday'] = '%s' % JD
-			msnweather['Sunrise'] = '%s%s%s%s' % (SRh, unichr(58).encode("latin-1"), SRx, SRm)
-			msnweather['Sunset'] = '%s%s%s%s' % (SSh, unichr(58).encode("latin-1"), SSx, SSm)
-			msnweather['Solstice'] = '%s%s%s%s' % (SCh, unichr(58).encode("latin-1"), SCx, SCm)
-			msnweather['Mercuryrise'] = '%s%s%s%s' % (P1Rh, unichr(58).encode("latin-1"), P1Rx, P1Rm)
-			msnweather['Mercuryset'] = '%s%s%s%s' % (P1Sh, unichr(58).encode("latin-1"), P1Sx, P1Sm)
-			msnweather['Mercuryculmination'] = '%s%s%s%s' % (P1Ch, unichr(58).encode("latin-1"), P1Cx, P1Cm)
-			msnweather['Mercuryazimuth'] = '%s %s' % (P1A, unichr(176).encode("latin-1"))
-			msnweather['Venusrise'] = '%s%s%s%s' % (P2Rh, unichr(58).encode("latin-1"), P2Rx, P2Rm)
-			msnweather['Venusset'] = '%s%s%s%s' % (P2Sh, unichr(58).encode("latin-1"), P2Sx, P2Sm)
-			msnweather['Venusculmination'] = '%s%s%s%s' % (P2Ch, unichr(58).encode("latin-1"), P2Cx, P2Cm)
-			msnweather['Venusazimuth'] = '%s %s' % (P2A, unichr(176).encode("latin-1"))
-			msnweather['Marsrise'] = '%s%s%s%s' % (P4Rh, unichr(58).encode("latin-1"), P4Rx, P4Rm)
-			msnweather['Marsset'] = '%s%s%s%s' % (P4Sh, unichr(58).encode("latin-1"), P4Sx, P4Sm)
-			msnweather['Marsculmination'] = '%s%s%s%s' % (P4Ch, unichr(58).encode("latin-1"), P4Cx, P4Cm)
-			msnweather['Marsazimuth'] = '%s %s' % (P4A, unichr(176).encode("latin-1"))
-			msnweather['Jupiterrise'] = '%s%s%s%s' % (P5Rh, unichr(58).encode("latin-1"), P5Rx, P5Rm)
-			msnweather['Jupiterset'] = '%s%s%s%s' % (P5Sh, unichr(58).encode("latin-1"), P5Sx, P5Sm)
-			msnweather['Jupiterculmination'] = '%s%s%s%s' % (P5Ch, unichr(58).encode("latin-1"), P5Cx, P5Cm)
-			msnweather['Jupiterazimuth'] = '%s %s' % (P5A, unichr(176).encode("latin-1"))
-			msnweather['Saturnrise'] = '%s%s%s%s' % (P6Rh, unichr(58).encode("latin-1"), P6Rx, P6Rm)
-			msnweather['Saturnset'] = '%s%s%s%s' % (P6Sh, unichr(58).encode("latin-1"), P6Sx, P6Sm)
-			msnweather['Saturnculmination'] = '%s%s%s%s' % (P6Ch, unichr(58).encode("latin-1"), P6Cx, P6Cm)
-			msnweather['Saturnazimuth'] = '%s %s' % (P6A, unichr(176).encode("latin-1"))
-			msnweather['Uranusrise'] = '%s%s%s%s' % (P7Rh, unichr(58).encode("latin-1"), P7Rx, P7Rm)
-			msnweather['Uranusset'] = '%s%s%s%s' % (P7Sh, unichr(58).encode("latin-1"), P7Sx, P7Sm)
-			msnweather['Uranusculmination'] = '%s%s%s%s' % (P7Ch, unichr(58).encode("latin-1"), P7Cx, P7Cm)
-			msnweather['Uranusazimuth'] = '%s %s' % (P7A, unichr(176).encode("latin-1"))
-			msnweather['Neptunerise'] = '%s%s%s%s' % (P8Rh, unichr(58).encode("latin-1"), P8Rx, P8Rm)
-			msnweather['Neptuneset'] = '%s%s%s%s' % (P8Sh, unichr(58).encode("latin-1"), P8Sx, P8Sm)
-			msnweather['Neptuneculmination'] = '%s%s%s%s' % (P8Ch, unichr(58).encode("latin-1"), P8Cx, P8Cm)
-			msnweather['Neptuneazimuth'] = '%s %s' % (P8A, unichr(176).encode("latin-1"))
+			msnweather['Sunrise'] = '%s%s%s%s' % (SRh, six.chr(58).encode("latin-1"), SRx, SRm)
+			msnweather['Sunset'] = '%s%s%s%s' % (SSh, six.chr(58).encode("latin-1"), SSx, SSm)
+			msnweather['Solstice'] = '%s%s%s%s' % (SCh, six.chr(58).encode("latin-1"), SCx, SCm)
+			msnweather['Mercuryrise'] = '%s%s%s%s' % (P1Rh, six.chr(58).encode("latin-1"), P1Rx, P1Rm)
+			msnweather['Mercuryset'] = '%s%s%s%s' % (P1Sh, six.chr(58).encode("latin-1"), P1Sx, P1Sm)
+			msnweather['Mercuryculmination'] = '%s%s%s%s' % (P1Ch, six.chr(58).encode("latin-1"), P1Cx, P1Cm)
+			msnweather['Mercuryazimuth'] = '%s %s' % (P1A, six.chr(176).encode("latin-1"))
+			msnweather['Venusrise'] = '%s%s%s%s' % (P2Rh, six.chr(58).encode("latin-1"), P2Rx, P2Rm)
+			msnweather['Venusset'] = '%s%s%s%s' % (P2Sh, six.chr(58).encode("latin-1"), P2Sx, P2Sm)
+			msnweather['Venusculmination'] = '%s%s%s%s' % (P2Ch, six.chr(58).encode("latin-1"), P2Cx, P2Cm)
+			msnweather['Venusazimuth'] = '%s %s' % (P2A, six.chr(176).encode("latin-1"))
+			msnweather['Marsrise'] = '%s%s%s%s' % (P4Rh, six.chr(58).encode("latin-1"), P4Rx, P4Rm)
+			msnweather['Marsset'] = '%s%s%s%s' % (P4Sh, six.chr(58).encode("latin-1"), P4Sx, P4Sm)
+			msnweather['Marsculmination'] = '%s%s%s%s' % (P4Ch, six.chr(58).encode("latin-1"), P4Cx, P4Cm)
+			msnweather['Marsazimuth'] = '%s %s' % (P4A, six.chr(176).encode("latin-1"))
+			msnweather['Jupiterrise'] = '%s%s%s%s' % (P5Rh, six.chr(58).encode("latin-1"), P5Rx, P5Rm)
+			msnweather['Jupiterset'] = '%s%s%s%s' % (P5Sh, six.chr(58).encode("latin-1"), P5Sx, P5Sm)
+			msnweather['Jupiterculmination'] = '%s%s%s%s' % (P5Ch, six.chr(58).encode("latin-1"), P5Cx, P5Cm)
+			msnweather['Jupiterazimuth'] = '%s %s' % (P5A, six.chr(176).encode("latin-1"))
+			msnweather['Saturnrise'] = '%s%s%s%s' % (P6Rh, six.chr(58).encode("latin-1"), P6Rx, P6Rm)
+			msnweather['Saturnset'] = '%s%s%s%s' % (P6Sh, six.chr(58).encode("latin-1"), P6Sx, P6Sm)
+			msnweather['Saturnculmination'] = '%s%s%s%s' % (P6Ch, six.chr(58).encode("latin-1"), P6Cx, P6Cm)
+			msnweather['Saturnazimuth'] = '%s %s' % (P6A, six.chr(176).encode("latin-1"))
+			msnweather['Uranusrise'] = '%s%s%s%s' % (P7Rh, six.chr(58).encode("latin-1"), P7Rx, P7Rm)
+			msnweather['Uranusset'] = '%s%s%s%s' % (P7Sh, six.chr(58).encode("latin-1"), P7Sx, P7Sm)
+			msnweather['Uranusculmination'] = '%s%s%s%s' % (P7Ch, six.chr(58).encode("latin-1"), P7Cx, P7Cm)
+			msnweather['Uranusazimuth'] = '%s %s' % (P7A, six.chr(176).encode("latin-1"))
+			msnweather['Neptunerise'] = '%s%s%s%s' % (P8Rh, six.chr(58).encode("latin-1"), P8Rx, P8Rm)
+			msnweather['Neptuneset'] = '%s%s%s%s' % (P8Sh, six.chr(58).encode("latin-1"), P8Sx, P8Sm)
+			msnweather['Neptuneculmination'] = '%s%s%s%s' % (P8Ch, six.chr(58).encode("latin-1"), P8Cx, P8Cm)
+			msnweather['Neptuneazimuth'] = '%s %s' % (P8A, six.chr(176).encode("latin-1"))
 			msnweather['Moondist'] = _('%s km') % Mdist
-			msnweather['Moonazimuth'] = '%s %s' % (MA, unichr(176).encode("latin-1"))
-			msnweather['Moonrise'] = '%s%s%s%s' % (MRh, unichr(58).encode("latin-1"), MRx, MRm)
-			msnweather['Moonset'] = '%s%s%s%s' % (MSh, unichr(58).encode("latin-1"), MSx, MSm)
-			msnweather['Moonculmination'] = '%s%s%s%s' % (MCh, unichr(58).encode("latin-1"), MCx, MCm)
+			msnweather['Moonazimuth'] = '%s %s' % (MA, six.chr(176).encode("latin-1"))
+			msnweather['Moonrise'] = '%s%s%s%s' % (MRh, six.chr(58).encode("latin-1"), MRx, MRm)
+			msnweather['Moonset'] = '%s%s%s%s' % (MSh, six.chr(58).encode("latin-1"), MSx, MSm)
+			msnweather['Moonculmination'] = '%s%s%s%s' % (MCh, six.chr(58).encode("latin-1"), MCx, MCm)
 			msnweather['Moonphase'] = '%s' % phase
-			msnweather['Moonlight'] = '%s %s' % (light, unichr(37).encode("latin-1"))
+			msnweather['Moonlight'] = '%s %s' % (light, six.chr(37).encode("latin-1"))
 			msnweather['PiconMoon'] = '%s' % pic
 		except:
 			pass

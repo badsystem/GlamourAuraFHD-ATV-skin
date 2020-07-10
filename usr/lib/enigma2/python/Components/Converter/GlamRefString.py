@@ -2,6 +2,7 @@
 #	Coded by Vali (c)2011
 #	modified by MCelliotG for Glamour skins
 
+from builtins import str
 from Components.Converter.Converter import Converter
 from Components.Element import cached
 from Screens.InfoBar import InfoBar

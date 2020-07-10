@@ -3,6 +3,8 @@
 # based on NextEvents by m0rphU & LN
 # if you like to use/modify this converter for other skins or change its name, keep the first three lines
 #
+from builtins import range
+from past.utils import old_div
 from Components.Converter.Converter import Converter
 from Components.Element import cached
 from Components.VariableText import VariableText
@@ -39,7 +41,7 @@ class GlamNextEvents(Converter, object):
 		self.epgcache = eEPGCache.getInstance()
 
 		args = type.split(',')
-		if len(args) is not 2:
+		if len(args) != 2:
 			raise ElementError("type must contain exactly 2 arguments")
 	
 		type = args.pop(0)
@@ -120,7 +122,7 @@ class GlamNextEvents(Converter, object):
 		begin = strftime("%H:%M", localtime(event.getBeginTime()))
 		end = strftime("%H:%M", localtime(event.getBeginTime() + event.getDuration()))
 		title = event.getEventName()#[:self.titleWidth]
-		duration = "%d min" % (event.getDuration() / 60)
+		duration = "%d min" % (old_div(event.getDuration(), 60))
 		if self.showDuration == self.withDuration:
 			f = "{begin} - {end:7}{title:<} ({duration})"
 			return f.format(begin = begin, end = end, title = title, duration = duration)

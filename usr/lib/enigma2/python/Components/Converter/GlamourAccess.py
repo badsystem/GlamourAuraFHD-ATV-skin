@@ -3,14 +3,16 @@
 #  Based on CaidInfo2 converter coded by bigroma & 2boom
 #  If you use this Converter for other skins and rename it, please keep the first and second line
 
+from __future__ import absolute_import
+from builtins import str
 from Components.Converter.Converter import Converter
 from enigma import iServiceInformation, iPlayableService
-from Tools.Directories import fileExists
 from Components.Element import cached
-from string import upper
 from Components.config import config, ConfigText, ConfigSubsection
-from Poll import Poll
+from Components.Converter.Poll import Poll
 import os
+from os import environ, listdir, remove, rename, system, path
+
 info = {}
 old_ecm_mtime = None
 try:
@@ -185,7 +187,8 @@ cainfo = (
 	("0000", "0000", "no or unknown")
 )
 
-class GlamourAccess(Poll, Converter):
+
+class GlamourAccess(Poll, Converter, object):
 	CAID = 0
 	PID = 1
 	BETACAS = 2
@@ -370,7 +373,7 @@ class GlamourAccess(Poll, Converter):
 			self.type = self.SHORTINFO
 		elif type == "CasInfo":
 			self.type = self.CASINFO
-		elif type == "EcmInfo" or type == "Default" or type == "" or type == None or type == "%":
+		elif type == "EcmInfo" or type == "Default" or type == "" or type is None or type == "%":
 			self.type = self.ECMINFO
 		else:
 			self.type = self.FORMAT
@@ -609,7 +612,7 @@ class GlamourAccess(Poll, Converter):
 					if int(config.usage.show_cryptoinfo.value) > 0:
 						if source == "sci":
 							return True
-						if source is not "cache" and source is not "net" and source.find("emu") == -1:
+						if source != "cache" and source != "net" and source.find("emu") == -1:
 							return True
 					return False
 				if self.type == self.CACHE:
@@ -646,7 +649,7 @@ class GlamourAccess(Poll, Converter):
 			info = service and service.info()
 
 			if self.type == self.CRYPTINFO:
-				if fileExists(ecmpath):
+				if os.path.exists(ecmpath):
 					try:
 						caid = "%0.4X" % int(ecm_info.get("caid", ""), 16)
 						return "%s" % caidname
@@ -728,7 +731,7 @@ class GlamourAccess(Poll, Converter):
 							info_card = "False"
 							if source == "sci":
 								info_card = "True"
-							if source is not "cache" and source is not "net" and source.find("emu") == -1:
+							if source != "cache" and source != "net" and source.find("emu") == -1:
 								info_card = "True"
 							return info_card
 
@@ -739,8 +742,8 @@ class GlamourAccess(Poll, Converter):
 							ecminfo = ""
 							params = self.sfmt.split(" ")
 							for param in params:
-								if param is not "":
-									if param[0] is not "%":
+								if param != "":
+									if param[0] != "%":
 										ecminfo += param
 									elif param == "%S":
 										ecminfo += server
@@ -775,7 +778,7 @@ class GlamourAccess(Poll, Converter):
 									elif param[1:].isdigit():
 										ecminfo = ecminfo.ljust(len(ecminfo) + int(param[1:]))
 									if len(ecminfo) > 0:
-										if ecminfo[-1] is not "\t" and ecminfo[-1] is not "\n":
+										if ecminfo[-1] != "\t" and ecminfo[-1] != "\n":
 											ecminfo += " "
 							return ecminfo[:-1]
 
@@ -785,13 +788,13 @@ class GlamourAccess(Poll, Converter):
 							if int(config.usage.show_cryptoinfo.value) > 0:
 								if source == "emu":
 									ecminfo = "CA: %s:%s  PID:%s  Source: %s@%s  Ecm Time: %s" % (caid, prov, pid, source, frm, ecm_time.replace("msec", "ms"))
-								elif reader is not "" and source == "net" and port is not "":
+								elif reader != "" and source == "net" and port != "":
 									ecminfo = "CA: %s:%s  PID:%s  Reader: %s@%s  Prtc:%s (%s)  Source: %s:%s %s  Ecm Time: %s  %s" % (caid, prov, pid, reader, frm, protocol, source, server, port, hops, ecm_time.replace("msec", "ms"), provider)
-								elif reader is not "" and source == "net" and not "fta" in protocol:
+								elif reader != "" and source == "net" and not "fta" in protocol:
 									ecminfo = "CA: %s:%s  PID:%s  Reader: %s@%s  Ptrc:%s (%s)  Source: %s %s  Ecm Time: %s  %s" % (caid, prov, pid, reader, frm, protocol, source, server, hops, ecm_time.replace("msec", "ms"), provider)
-								elif reader is not "" and source is not "net":
+								elif reader != "" and source != "net":
 									ecminfo = "CA: %s:%s  PID:%s  Reader: %s@%s  Prtc:%s (local) - %s %s  Ecm Time: %s  %s" % (caid, prov, pid, reader, frm, protocol, source, hops, ecm_time.replace("msec", "ms"), provider)
-								elif server == "" and port == "" and protocol is not "":
+								elif server == "" and port == "" and protocol != "":
 									ecminfo = "CA: %s:%s  PID:%s  Prtc: %s (%s) %s Ecm Time: %s" % (caid, prov, pid, protocol, source, hops, ecm_time.replace("msec", "ms"))
 								elif server == "" and port == "" and protocol == "":
 									ecminfo = "CA: %s:%s  PID:%s  Source: %s  Ecm Time: %s" % (caid, prov, pid, source, ecm_time.replace("msec", "ms"))
@@ -813,7 +816,7 @@ class GlamourAccess(Poll, Converter):
 									ecminfo = "%s:%s - %s - %s" % (caid, prov, source, ecm_time.replace("msec", "ms"))
 								else:
 									try:
-										if reader is not "":
+										if reader != "":
 											ecminfo = "%s:%s - %s (%s) - %s" % (caid, prov, frm, hop, ecm_time.replace("msec", "ms"))
 										else:
 											ecminfo = "%s:%s - %s (%s) - %s" % (caid, prov, server, hop, ecm_time.replace("msec", "ms"))
@@ -830,7 +833,7 @@ class GlamourAccess(Poll, Converter):
 									ecminfo = "%s [%s:%s - %s - %s]" % (csi, caid, prov, source, ecm_time.replace("msec", "ms"))
 								else:
 									try:
-										if reader is not "":
+										if reader != "":
 											ecminfo = "%s [%s:%s - %s@%s - %s]" % (csi, caid, prov, reader, hop, ecm_time.replace("msec", "ms"))
 										else:
 											ecminfo = "%s [%s:%s - %s@%s - %s]" % (csi, caid, prov, server, hop, ecm_time.replace("msec", "ms"))
@@ -858,7 +861,7 @@ class GlamourAccess(Poll, Converter):
 		camdname = []
 		sername = []
 #OpenPLI/SatDreamGr
-		if fileExists("/etc/init.d/softcam") and not fileExists("/etc/image-version") or fileExists("/etc/init.d/cardserver") and not fileExists("/etc/image-version"):
+		if os.path.exists("/etc/init.d/softcam") and not os.path.exists("/etc/image-version") or os.path.exists("/etc/init.d/cardserver") and not os.path.exists("/etc/image-version"):
 			try:
 				for line in open("/etc/init.d/softcam"):
 					if line.startswith("CAMNAME="):
@@ -889,7 +892,7 @@ class GlamourAccess(Poll, Converter):
 				camdlist = ""
 			return "%s %s" % (serlist, camdlist)
 #OE-A
-		if fileExists("/etc/image-version") and not fileExists("/etc/.emustart"):
+		if os.path.exists("/etc/image-version") and not os.path.exists("/etc/.emustart"):
 			for line in open("/etc/image-version"):
 				if "=openATV" in line:
 					try:
@@ -906,18 +909,18 @@ class GlamourAccess(Poll, Converter):
 					except:
 						pass
 					try:
-						if fileExists("/tmp/.oscam/oscam.version"):
+						if os.path.exists("/tmp/.oscam/oscam.version"):
 							for line in open("/tmp/.oscam/oscam.version"):
 								if line.startswith("Version:"):
-									cam1 = "%s" % line.split(':')[1].replace(" ","")
-						elif fileExists("/tmp/.ncam/ncam.version"):
+									cam1 = "%s" % line.split(':')[1].replace(" ", "")
+						elif os.path.exists("/tmp/.ncam/ncam.version"):
 							for line in open("/tmp/.ncam/ncam.version"):
 								if line.startswith("Version:"):
-									cam1 = "%s" % line.split(':')[1].replace(" ","")
+									cam1 = "%s" % line.split(':')[1].replace(" ", "")
 						else:
 							for line in open("/etc/init.d/softcam"):
 								if "Short-Description" in line:
-									cam1 = "%s" % line.split(':')[1].replace(" ","")
+									cam1 = "%s" % line.split(':')[1].replace(" ", "")
 								if line.startswith("CAMNAME="):
 									cam1 = "%s" % line.split('"')[1]
 								elif line.find("echo") > -1:
@@ -954,37 +957,37 @@ class GlamourAccess(Poll, Converter):
 						pass
 			return "%s%s" % (cam1, cam2)
 #BLACKHOLE
-		if fileExists("/etc/CurrentDelCamName"):
+		if os.path.exists("/etc/CurrentDelCamName"):
 			try:
 				camdlist = open("/etc/CurrentDelCamName", "r")
 			except:
 				return None
-		if fileExists("/etc/CurrentBhCamName"):
+		if os.path.exists("/etc/CurrentBhCamName"):
 			try:
 				camdlist = open("/etc/CurrentBhCamName", "r")
 			except:
 				return None
 # DE-OpenBlackHole
-		if fileExists("/etc/BhFpConf"):
+		if os.path.exists("/etc/BhFpConf"):
 			try:
 				camdlist = open("/etc/BhCamConf", "r")
 			except:
 				return None
 #HDMU
-		if fileExists("/etc/.emustart") and fileExists("/etc/image-version"):
+		if os.path.exists("/etc/.emustart") and os.path.exists("/etc/image-version"):
 			try:
 				for line in open("/etc/.emustart"):
 					return line.split()[0].split("/")[-1]
 			except:
 				return None
 # Domica
-		if fileExists("/etc/active_emu.list"):
+		if os.path.exists("/etc/active_emu.list"):
 			try:
 				camdlist = open("/etc/active_emu.list", "r")
 			except:
 				return None
 # Egami 
-		if fileExists("/tmp/egami.inf", "r"):
+		if os.path.exists("/tmp/egami.inf", "r"):
 			try:
 				lines = open("/tmp/egami.inf", "r").readlines()
 				for line in lines:
@@ -994,25 +997,25 @@ class GlamourAccess(Poll, Converter):
 			except:
 				return None
 # OoZooN
-		if fileExists("/tmp/cam.info"):
+		if os.path.exists("/tmp/cam.info"):
 			try:
 				camdlist = open("/tmp/cam.info", "r")
 			except:
 				return None
 # Dream Elite
-		if fileExists("/usr/bin/emuactive"):
+		if os.path.exists("/usr/bin/emuactive"):
 			try:
 				camdlist = open("/usr/bin/emuactive", "r")
 			except:
 				return None
 # Merlin2
-		if fileExists("/etc/clist.list"):
+		if os.path.exists("/etc/clist.list"):
 			try:
 				camdlist = open("/etc/clist.list", "r")
 			except:
 				return None
 # TS-Panel
-		if fileExists("/etc/startcam.sh"):
+		if os.path.exists("/etc/startcam.sh"):
 			try:
 				for line in open("/etc/startcam.sh"):
 					if line.find("script") > -1:
@@ -1020,13 +1023,13 @@ class GlamourAccess(Poll, Converter):
 			except:
 				camdlist = None
 #  GlassSysUtil
-		if fileExists("/tmp/ucm_cam.info"):
+		if os.path.exists("/tmp/ucm_cam.info"):
 			try:
 				return open("/tmp/ucm_cam.info").read()
 			except:
 				return None
 # Others
-		if serlist is not None:
+		if serlist != None:
 			try:
 				cardserver = ""
 				for current in serlist.readlines():
@@ -1036,7 +1039,7 @@ class GlamourAccess(Poll, Converter):
 				pass
 		else:
 			cardserver = "N/A"
-		if camdlist is not None:
+		if camdlist != None:
 			try:
 				emu = ""
 				for current in camdlist.readlines():
@@ -1144,21 +1147,21 @@ class GlamourAccess(Poll, Converter):
 
 	def ecmpath(self):
 		ecmpath = None
-		if fileExists("/tmp/ecm7.info"):
+		if os.path.exists("/tmp/ecm7.info"):
 			ecmpath = "/tmp/ecm7.info"
-		elif fileExists("/tmp/ecm6.info") and not fileExists("tmp/ecm7.info"):
+		elif os.path.exists("/tmp/ecm6.info") and not os.path.exists("tmp/ecm7.info"):
 			ecmpath = "/tmp/ecm6.info"
-		elif fileExists("/tmp/ecm5.info") and not fileExists("tmp/ecm6.info"):
+		elif os.path.exists("/tmp/ecm5.info") and not os.path.exists("tmp/ecm6.info"):
 			ecmpath = "/tmp/ecm5.info"
-		elif fileExists("/tmp/ecm4.info") and not fileExists("tmp/ecm5.info"):
+		elif os.path.exists("/tmp/ecm4.info") and not os.path.exists("tmp/ecm5.info"):
 			ecmpath = "/tmp/ecm4.info"
-		elif fileExists("/tmp/ecm3.info") and not fileExists("tmp/ecm4.info"):
+		elif os.path.exists("/tmp/ecm3.info") and not os.path.exists("tmp/ecm4.info"):
 			ecmpath = "/tmp/ecm3.info"
-		elif fileExists("/tmp/ecm2.info") and not fileExists("tmp/ecm3.info"):
+		elif os.path.exists("/tmp/ecm2.info") and not os.path.exists("tmp/ecm3.info"):
 			ecmpath = "/tmp/ecm2.info"
-		elif fileExists("/tmp/ecm1.info") and not fileExists("tmp/ecm2.info"):
+		elif os.path.exists("/tmp/ecm1.info") and not os.path.exists("tmp/ecm2.info"):
 			ecmpath = "/tmp/ecm1.info"
-		elif fileExists("/tmp/ecm0.info") and not fileExists("/tmp/ecm1.info"):
+		elif os.path.exists("/tmp/ecm0.info") and not os.path.exists("/tmp/ecm1.info"):
 			ecmpath = "/tmp/ecm0.info"
 		else:
 			try:
@@ -1182,7 +1185,7 @@ class GlamourAccess(Poll, Converter):
 				if ecm_mtime == old_ecm_mtime:
 					return info
 				old_ecm_mtime = ecm_mtime
-				ecmf = open(ecmpath, "rb")
+				ecmf = open(ecmpath, "r")
 				ecm = ecmf.readlines()
 			except:
 				old_ecm_mtime = None
@@ -1191,7 +1194,7 @@ class GlamourAccess(Poll, Converter):
 			if ecm:
 				for line in ecm:
 					x = line.lower().find("msec")
-					if x is not -1:
+					if x != -1:
 						info["ecm time"] = line[0:x + 4]
 					else:
 						item = line.split(":", 1)
@@ -1206,11 +1209,11 @@ class GlamourAccess(Poll, Converter):
 								it_tmp = item[1].strip().split(" ")
 								info["ecm time"] = "%s msec" % it_tmp[0]
 								y = it_tmp[-1].find("[")
-								if y is not -1:
+								if y != -1:
 									info["server"] = it_tmp[-1][:y]
 									info["protocol"] = it_tmp[-1][y + 1:-1]
 								y = it_tmp[-1].find("(")
-								if y is not -1:
+								if y != -1:
 									info["server"] = it_tmp[-1].split("(")[-1].split(":")[0]
 									info["port"] = it_tmp[-1].split("(")[-1].split(":")[-1].rstrip(")")
 								elif y == -1:
@@ -1238,7 +1241,7 @@ class GlamourAccess(Poll, Converter):
 									item[1] = "net"
 							elif item[0] == "prov":
 								y = item[1].find(",")
-								if y is not -1:
+								if y != -1:
 									item[1] = item[1][:y]
 							elif item[0] == "reader":
 								if item[1].strip() == "emu":
@@ -1263,7 +1266,7 @@ class GlamourAccess(Poll, Converter):
 									item[0] = "protocol"
 							elif item[0] == "address":
 								tt = item[1].find(":")
-								if tt is not -1:
+								if tt != -1:
 									info["server"] = item[1][:tt].strip()
 									item[0] = "port"
 									item[1] = item[1][tt + 1:]
@@ -1271,18 +1274,18 @@ class GlamourAccess(Poll, Converter):
 						else:
 							if "caid" not in info:
 								x = line.lower().find("caid")
-								if x is not -1:
+								if x != -1:
 									y = line.find(",")
-									if y is not -1:
+									if y != -1:
 										info["caid"] = line[x + 5:y]
 							if "pid" not in info:
 								x = line.lower().find("pid")
-								if x is not -1:
+								if x != -1:
 									y = line.find(" =")
 									z = line.find(" *")
-									if y is not -1:
+									if y != -1:
 										info["pid"] = line[x + 4:y]
-									elif z is not -1:
+									elif z != -1:
 										info["pid"] = line[x + 4:z]
 				ecmf.close()
 		return info

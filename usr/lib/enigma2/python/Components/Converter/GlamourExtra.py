@@ -1,14 +1,20 @@
-﻿#  GlamourExtra Converter
+﻿# -*- coding: utf-8 -*-
+#  GlamourExtra Converter
 #  Modded and recoded by MCelliotG for use in Glamour skins or standalone
 #  HDDtemp new detection added by betacentauri, many thanks!!!
 #  If you use this Converter for other skins and rename it, please keep the first and second line adding your credits below
 
+from __future__ import absolute_import
+import six
+from builtins import str
+from past.utils import old_div
 from Components.Converter.Converter import Converter 
 from Components.Element import cached 
-from Poll import Poll
+from Components.Converter.Poll import Poll
 from enigma import eConsoleAppContainer 
+import os
 from os import system, path, popen
-from Tools.Directories import fileExists
+
 
 class GlamourExtra(Poll, Converter):
 	TEMPERATURE = 0
@@ -52,50 +58,50 @@ class GlamourExtra(Poll, Converter):
 
 
 	def dataAvail(self, strData):
-		self.hddtemp_output = self.hddtemp_output + strData
+		self.hddtemp_output = (self.hddtemp_output).encode("utf-8") + strData
 
 	def runFinished(self, retval):
-		temp = str(self.hddtemp_output)
+		temp = (self.hddtemp_output).decode("utf-8")
 		if "No such file or directory" in temp or "not found" in temp:
 			htemp = ""
 			self.hddtemp = "HDD Temp: N/A"
 		else:
-			htemp = str(int(temp))
+			htemp = str(temp)
 			if htemp == "0" or htemp is None:
 				self.hddtemp = "HDD idle or N/A"
 			else:
-				self.hddtemp = "HDD Temp: " + htemp + "°C"
+				self.hddtemp = "HDD Temp: %sC" % htemp
 
 	@cached
 	def getText(self):
 		if (self.type == self.CPULOAD):
 			cpuload = ""
-			if fileExists("/proc/loadavg"):
+			if os.path.exists("/proc/loadavg"):
 				try:
 					with open("/proc/loadavg", "r") as l:
 						load = l.readline(4)
 				except:
 					load = ""
-				cpuload = load.replace("\n", "").replace(" ","")
+				cpuload = load.replace("\n", "").replace(" ", "")
 				return "CPU Load: %s" % cpuload
 
 		elif (self.type == self.TEMPERATURE):
 			systemp = ""
 			cputemp = ""
 			try:
-				if fileExists("/proc/stb/sensors/temp0/value"):
+				if os.path.exists("/proc/stb/sensors/temp0/value"):
 					with open("/proc/stb/sensors/temp0/value") as stemp:
 						systemp = "Sys Temp: " + stemp.readline().replace("\n", "") + "°C"
-				elif fileExists("/proc/stb/fp/temp_sensor"):
+				elif os.path.exists("/proc/stb/fp/temp_sensor"):
 					with open("/proc/stb/fp/temp_sensor") as stemp:
 						systemp = "Board: " + stemp.readline().replace("\n", "") + "°C"
-				if fileExists("/proc/stb/fp/temp_sensor_avs"):
+				if os.path.exists("/proc/stb/fp/temp_sensor_avs"):
 					with open("/proc/stb/fp/temp_sensor_avs") as ctemp:
 						cputemp = ctemp.readline().replace("\n", "") + "°C"
-				elif fileExists("/sys/devices/virtual/thermal/thermal_zone0/temp"):
+				elif os.path.exists("/sys/devices/virtual/thermal/thermal_zone0/temp"):
 					with open("/sys/devices/virtual/thermal/thermal_zone0/temp") as ctemp:
 						cputemp = ctemp.read()[:2].replace("\n", "") + "°C"
-				elif fileExists("/proc/hisi/msp/pm_cpu"):
+				elif os.path.exists("/proc/hisi/msp/pm_cpu"):
 					for line in open("/proc/hisi/msp/pm_cpu").readlines():
 						line = [x.strip() for x in line.strip().split(":")]
 						if line[0] in ("Tsensor"):
@@ -124,11 +130,11 @@ class GlamourExtra(Poll, Converter):
 						 cpuspeed = "%1.0f" % float(line[1])
 				if not cpuspeed:
 					try:
-						cpuspeed = int(open("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq").read()) / 1000
+						cpuspeed = old_div(int(open("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq").read()), 1000)
 					except:
 						try:
 							import binascii
-							cpuspeed = int(int(binascii.hexlify(open("/sys/firmware/devicetree/base/cpus/cpu@0/clock-frequency", "rb").read()), 16) / 100000000) * 100
+							cpuspeed = int(old_div(int(binascii.hexlify(open("/sys/firmware/devicetree/base/cpus/cpu@0/clock-frequency", "rb").read()), 16), 100000000)) * 100
 						except:
 							cpuspeed = "-"
 				return "CPU Speed: %s MHz" % cpuspeed
@@ -140,13 +146,13 @@ class GlamourExtra(Poll, Converter):
 			fv = ""
 			fp = ""
 			try:
-				if fileExists("/proc/stb/fp/fan_speed"):
+				if os.path.exists("/proc/stb/fp/fan_speed"):
 					with open("/proc/stb/fp/fan_speed", "r") as fs:
 						fs = str(fs.readline().strip())
-				if fileExists("/proc/stb/fp/fan_vlt"):
+				if os.path.exists("/proc/stb/fp/fan_vlt"):
 					with open("/proc/stb/fp/fan_vlt", "r") as fv:
 						fv = str(int(fv.readline().strip(), 16))
-				if fileExists("/proc/stb/fp/fan_pwm"):
+				if os.path.exists("/proc/stb/fp/fan_pwm"):
 					with open("/proc/stb/fp/fan_pwm", "r") as fp:
 						fp = str(int(fp.readline().strip(), 16))
 			except:
@@ -165,14 +171,14 @@ class GlamourExtra(Poll, Converter):
 			except:
 				return "Uptime: N/A"
 				uptime_info = None
-			if uptime_info is not None:
+			if uptime_info != None:
 				total_seconds = float(uptime_info[0])
 				MINUTE = 60
 				HOUR = MINUTE * 60
 				DAY = HOUR * 24
-				days = str(int(total_seconds / DAY))
-				hours = str(int(total_seconds % DAY / HOUR))
-				minutes = str(int(total_seconds % HOUR / MINUTE))
+				days = str(int(old_div(total_seconds, DAY)))
+				hours = str(int(old_div(total_seconds % DAY, HOUR)))
+				minutes = str(int(old_div(total_seconds % HOUR, MINUTE)))
 				seconds = str(int(total_seconds % MINUTE))
 				uptime = ""
 				if self.shortFormat:

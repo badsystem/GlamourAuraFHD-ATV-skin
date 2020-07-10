@@ -5,9 +5,10 @@
 from enigma import iPlayableService
 from Components.Converter.Converter import Converter
 from Components.Element import cached
-from Poll import Poll
+from Components.Converter.Poll import Poll
 import re
 
+import six
 try:
 	from enigma import iAudioType_ENUMS as iAt
 	AUDIO_FORMATS = {
@@ -29,6 +30,7 @@ try:
 	}
 except:
 	pass
+
 
 class GlamourAudioInfo(Poll, Converter, object):
 	GET_AUDIO_ICON = 0
@@ -108,11 +110,11 @@ class GlamourAudioInfo(Poll, Converter, object):
 		return description_str
 
 	def getAudioIcon(self, info):
-		description_str = self.get_short(self.getAudioCodec(info).translate(None, " .").lower())
+		description_str = self.get_short(self.getAudioCodec(info).translate(" .").lower())
 		return description_str
 
 	def get_short(self, audioName):
-		for return_codec, codecs in sorted(self.codecs.iteritems()):
+		for return_codec, codecs in sorted(six.iteritems(self.codecs)):
 			for codec in codecs:
 				if codec in audioName:
 					codec = return_codec.split("_")[1]

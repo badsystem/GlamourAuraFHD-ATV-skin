@@ -2,9 +2,12 @@
 #  Coded by MCelliotG for use in Glamour skins or standalone
 #  If you use this Converter for other skins and rename it, please keep the first and second line
 
+from builtins import str
+from builtins import map
 from Components.Converter.Converter import Converter
 from Components.Element import cached
-from Tools.Directories import fileExists
+import os.path
+
 
 class GlamourTuners(Converter, object):
 	TUNER_A = 0
@@ -99,7 +102,7 @@ class GlamourTuners(Converter, object):
 ######### COMMON VARIABLES #################
 	def getTuners(self):
 		niminfo = [ ]
-		if fileExists("/proc/bus/nim_sockets"):
+		if os.path.exists("/proc/bus/nim_sockets"):
 			try:
 				with open("/proc/bus/nim_sockets", "r") as niminfo:
 					niminfo = niminfo.readlines()

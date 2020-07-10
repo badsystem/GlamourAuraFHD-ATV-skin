@@ -1,13 +1,17 @@
-﻿#  GlamourSpace converter
+﻿
+#  GlamourSpace converter
 #  Based on DiskSpaceInfo converter
 #  Modded and recoded by MCelliotG for use in Glamour skins or standalone
 #  If you use this Converter for other skins and rename it, please keep the first and second line adding your credits below
 
+from __future__ import absolute_import
+from builtins import str
+from past.utils import old_div
 from Components.Converter.Converter import Converter
 from Components.Element import cached
-from Poll import Poll
-from Tools.Directories import fileExists
-from os import popen, statvfs
+from Components.Converter.Poll import Poll
+import os
+from os import popen, statvfs, path
 SIZE_UNITS = ["B", "KB", "MB", "GB", "TB", "PB", "EB"]
 
 class GlamourSpace(Poll, Converter):
@@ -69,7 +73,7 @@ class GlamourSpace(Poll, Converter):
 			ramavail = ""
 			ramtotal = ""
 			try:
-				if fileExists("/proc/meminfo"):
+				if os.path.exists("/proc/meminfo"):
 					with open("/proc/meminfo") as ram:
 						raminfo = ram.readlines()
 						for lines in raminfo:
@@ -81,7 +85,7 @@ class GlamourSpace(Poll, Converter):
 								ramavail = str(float(lisp[1]) / 1024)
 								ramavail = "%.6s MB Avail. " % ramavail
 							if (lisp[0].startswith("MemTotal:")):
-								ramtotal = str(int(lisp[1]) / 1024)
+								ramtotal = str(old_div(int(lisp[1]), 1024))
 								ramtotal = "%s MB Total " % ramtotal 
 			except:
 				pass
@@ -94,19 +98,19 @@ class GlamourSpace(Poll, Converter):
 			swapcached = ""
 			swaptotal = ""
 			try:
-				if fileExists("/proc/meminfo"):
+				if os.path.exists("/proc/meminfo"):
 					with open("/proc/meminfo") as swp:
 						swpinfo = swp.readlines()
 						for lines in swpinfo:
 							lisp = lines.split()
 							if (lisp[0].startswith("SwapFree:")):
-								swapfree = str(int(lisp[1]) / 1024)
+								swapfree = str(old_div(int(lisp[1]), 1024))
 								swapfree = "%s MB Free, " % swapfree
 							if (lisp[0].startswith("SwapCached:")):
-								swapcached = str(int(lisp[1]) / 1024)
+								swapcached = str(old_div(int(lisp[1]), 1024))
 								swapcached = "%s MB Cached, " % swapcached
 							if (lisp[0].startswith("SwapTotal:")):
-								swaptotal = str(int(lisp[1]) / 1024)
+								swaptotal = str(old_div(int(lisp[1]), 1024))
 								swaptotal = "%s MB Total " % swaptotal
 			except:
 				pass
@@ -190,7 +194,7 @@ class GlamourSpace(Poll, Converter):
 					if check > 1:
 						if result[0] > 0:
 							result[1] = result[0] - result[2]
-							result[3] = result[1] * 100 / result[0]
+							result[3] = old_div(result[1] * 100, result[0])
 						break
 		except:
 			pass
@@ -220,11 +224,11 @@ class GlamourSpace(Poll, Converter):
 			except:
 				st = None
 
-			if st is not None and 0 not in (st.f_bsize, st.f_blocks):
+			if st != None and 0 not in (st.f_bsize, st.f_blocks):
 				result[0] = st.f_bsize * st.f_blocks
 				result[2] = st.f_bsize * st.f_bavail
 				result[1] = result[0] - result[2]
-				result[3] = result[1] * 100 / result[0]
+				result[3] = old_div(result[1] * 100, result[0])
 		return result
 
 	def getSizeStr(self, value, u = 0):
@@ -233,7 +237,7 @@ class GlamourSpace(Poll, Converter):
 			fmt = "%(size)u.%(frac)d %(unit)s"
 			while value >= 1024 and u < len(SIZE_UNITS):
 				value, mod = divmod(value, 1024)
-				fractal = mod * 10 / 1024
+				fractal = old_div(mod * 10, 1024)
 				u += 1
 
 		else:

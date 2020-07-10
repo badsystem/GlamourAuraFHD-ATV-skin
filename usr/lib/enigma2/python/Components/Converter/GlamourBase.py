@@ -3,17 +3,21 @@
 #  Modded and recoded by MCelliotG for use in Glamour skins or standalone
 #  If you use this Converter for other skins and rename it, please keep the first and second line
 
+from __future__ import absolute_import
+from builtins import str
+from builtins import hex
+from past.utils import old_div
 from Components.Converter.Converter import Converter
 from Components.Element import cached
-from Poll import Poll 
+from Components.Converter.Poll import Poll 
 import NavigationInstance
 from ServiceReference import ServiceReference, resolveAlternate 
 from enigma import iServiceInformation, iPlayableService, iPlayableServicePtr, eServiceCenter
-from string import upper 
 from Tools.Transponder import ConvertToHumanReadable
 from Components.config import config
-from Tools.Directories import fileExists
+import os
 from os import path
+import six
 
 
 def sp(text):
@@ -159,7 +163,7 @@ satnames = (
 	(21.4, 21.8, "Eutelsat 21B"),
 	(20.8, 21.2, "AfriStar 1"),
 	(19.8, 20.5, "Arabsat 5C"),
-	(18.8, 19.5, "Astra 1KR,1L,1M,1N"),
+	(18.8, 19.5, "Astra 1KR,1,1M,1N"),
 	(16.6, 17.3, "Amos 17"),
 	(15.6, 16.3, "Eutelsat 16A"),
 	(12.7, 13.5, "HotBird 13B,13C,13E"),
@@ -459,7 +463,7 @@ class GlamourBase(Poll, Converter, object):
 			if (fps < 0) or (fps == -1):
 				return ""
 			fps = "%6.3f" % (fps/1000.)
-		return "%s fps" % (fps.replace(".000",""))
+		return "%s fps" % (fps.replace(".000", ""))
 
 	def videocodec(self, info):
 		vcodec = codecs.get(info.getInfo(iServiceInformation.sVideoType), "N/A")
@@ -481,19 +485,19 @@ class GlamourBase(Poll, Converter, object):
 	def frequency(self, tp):
 		freq = (tp.get("frequency") + 500)
 		if freq:
-			frequency = str(int(freq) / 1000)
+			frequency = str(old_div(int(freq), 1000))
 			return frequency
 		else:
 			return ""
 
 	def terrafreq(self, tp):
-		return str(int(tp.get("frequency") + 1) / 1000000)
+		return str(old_div(int(tp.get("frequency") + 1), 1000000))
 
 	def channel(self, tpinfo):
 		return str(tpinfo.get("channel")) or ""
 
 	def symbolrate(self, tp):
-		return str(int(tp.get("symbol_rate", 0) / 1000))
+		return str(int(old_div(tp.get("symbol_rate", 0), 1000)))
 
 	def polarization(self, tpinfo):
 		return str(tpinfo.get("polarization_abbreviation")) or ""
@@ -550,7 +554,7 @@ class GlamourBase(Poll, Converter, object):
 		isid = str(tpinfo.get("is_id", 0)) 
 		plscode = str(tpinfo.get("pls_code", 0))
 		plsmode = str(tpinfo.get("pls_mode", None))
-		if plsmode == "None" or plsmode == "Unknown" or (plsmode is not "None" and plscode == "0"):
+		if plsmode == "None" or plsmode == "Unknown" or (plsmode != "None" and plscode == "0"):
 			plsmode = ""
 		if isid == "None" or isid == "-1" or isid == "0":
 			isid = ""
@@ -612,7 +616,7 @@ class GlamourBase(Poll, Converter, object):
 			refstr = playref.toString()
 			if "%3a/" in refstr or ":/" in refstr:
 				strurl = refstr.split(":")
-				streamurl = strurl[10].replace("%3a",":")
+				streamurl = strurl[10].replace("%3a", ":")
 				if len(streamurl) > 80:
 					streamurl = "%s..." % streamurl[:79]
 				return streamurl
@@ -655,11 +659,9 @@ class GlamourBase(Poll, Converter, object):
 			onid = ""
 		else:
 			onid = "ONID:" + str(onid).zfill(4)
-		if (vpid >= 0) or (apid >= 0) or (sid >= 0) or (tsid >= 0) or (onid >= 0):
-			pidinfo = sp(vpid) + sp(apid) + sp(sid) + sp(pcrpid) + sp(pmtpid) + sp(tsid) + onid
-			return pidinfo
-		else:
-			return ""
+		pidinfo = sp(vpid) + sp(apid) + sp(sid) + sp(pcrpid) + sp(pmtpid) + sp(tsid) + onid
+		return pidinfo
+
 
 	def pidhexstring(self, info):
 		vpid = info.getInfo(iServiceInformation.sVideoPID)
@@ -697,11 +699,9 @@ class GlamourBase(Poll, Converter, object):
 			onid = ""
 		else:
 			onid = "ONID:" + str(hex(onid)[2:]).upper().zfill(4)
-		if (vpid >= 0) or (apid >= 0) or (sid >= 0) or (tsid >= 0) or (onid >= 0):
-			pidhexinfo = sp(vpid) + sp(apid) + sp(sid) + sp(pcrpid) + sp(pmtpid) + sp(tsid) + onid
-			return pidhexinfo
-		else:
-			return ""
+		pidhexinfo = sp(vpid) + sp(apid) + sp(sid) + sp(pcrpid) + sp(pmtpid) + sp(tsid) + onid
+		return pidhexinfo
+
 
 	@cached
 	def getText(self):

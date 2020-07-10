@@ -1,6 +1,10 @@
-from Converter import Converter
-from Poll import Poll
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from Components.Converter.Converter import Converter
+from Components.Converter.Poll import Poll
 from Components.Element import cached
+
 
 class GlamCPU(Converter, object):
 	CPU_ALL = -2
@@ -108,7 +112,7 @@ class CpuUsageMonitor(Poll, object):
 			info = []
 			for i in range(len(self.__curr_info)):
 				try:
-					p = 100 * (self.__curr_info[i][2] - prev_info[i][2]) / (self.__curr_info[i][1] - prev_info[i][1])
+					p = old_div(100 * (self.__curr_info[i][2] - prev_info[i][2]), (self.__curr_info[i][1] - prev_info[i][1]))
 				except ZeroDivisionError:
 					p = 0
 
