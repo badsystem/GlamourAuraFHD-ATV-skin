@@ -67,5 +67,5 @@ class GlamRoll(VariableText, Renderer):
 					self.text = self.text[:-1]
 					text_width = self.instance.calculateSize().width()
 				self.text = self.text[:-4] + " ..."
-		if self.status is not "end":
+		if self.status != "end":
 			self.moveTimerText.start(150)
