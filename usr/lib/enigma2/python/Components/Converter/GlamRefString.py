@@ -25,7 +25,7 @@ class GlamRefString(Converter, object):
 			servname= str(self.source.service.toString())
 			return servname
 		elif (self.type == self.CURRENT):
-			if self.CHANSEL == None:
+			if self.CHANSEL is None:
 				self.CHANSEL = InfoBar.instance.servicelist
 			if len(InfoBar.instance.session.dialog_stack)>1:
 				for zz in InfoBar.instance.session.dialog_stack:

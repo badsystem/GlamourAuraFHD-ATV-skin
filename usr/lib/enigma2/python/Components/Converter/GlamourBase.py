@@ -15,9 +15,7 @@ from ServiceReference import ServiceReference, resolveAlternate
 from enigma import iServiceInformation, iPlayableService, iPlayableServicePtr, eServiceCenter
 from Tools.Transponder import ConvertToHumanReadable
 from Components.config import config
-import os
-from os import path
-import six
+import os.path
 
 
 def sp(text):
@@ -408,7 +406,7 @@ class GlamourBase(Poll, Converter, object):
 ######### COMMON VARIABLES #################
 	def videowidth(self, info):
 		width = 0
-		if path.exists("/proc/stb/vmpeg/0/xres"):
+		if os.path.exists("/proc/stb/vmpeg/0/xres"):
 			with open("/proc/stb/vmpeg/0/xres", "r") as w:
 				try:
 					width = int(w.read(),16)
@@ -421,7 +419,7 @@ class GlamourBase(Poll, Converter, object):
 
 	def videoheight(self, info):
 		height = 0
-		if path.exists("/proc/stb/vmpeg/0/yres"):
+		if os.path.exists("/proc/stb/vmpeg/0/yres"):
 			with open("/proc/stb/vmpeg/0/yres", "r") as h:
 				try:
 					height = int(h.read(),16)
@@ -434,7 +432,7 @@ class GlamourBase(Poll, Converter, object):
 
 	def proginfo(self, info):
 		progrs = ""
-		if path.exists("/proc/stb/vmpeg/0/progressive"):
+		if os.path.exists("/proc/stb/vmpeg/0/progressive"):
 			with open("/proc/stb/vmpeg/0/progressive", "r") as prog:
 				try:
 					progrs = "p" if int(prog.read(),16) else "i"
@@ -454,7 +452,7 @@ class GlamourBase(Poll, Converter, object):
 
 	def framerate(self, info):
 		fps = 0
-		if path.exists("/proc/stb/vmpeg/0/framerate"):
+		if os.path.exists("/proc/stb/vmpeg/0/framerate"):
 			with open("/proc/stb/vmpeg/0/framerate", "r") as fp:
 				try:
 					fps = int(fp.read())
@@ -719,7 +717,7 @@ class GlamourBase(Poll, Converter, object):
 				tpinfo = ConvertToHumanReadable(tp)
 
 
-		if (self.type == self.FREQINFO):
+		if self.type == self.FREQINFO:
 			refstr = str(self.reference())
 			if "%3a/" in refstr or ":/" in refstr:
 				return self.streamurl()
@@ -741,7 +739,7 @@ class GlamourBase(Poll, Converter, object):
 					return "%s (Mhz) %s" % (self.terrafreq(tp), self.modulation(tpinfo))
 				return ""
 
-		elif (self.type == self.ORBITAL):
+		elif self.type == self.ORBITAL:
 			refstr = str(self.reference())
 			if "%3a/" in refstr or ":/" in refstr:
 				return self.streamtype()
@@ -752,34 +750,34 @@ class GlamourBase(Poll, Converter, object):
 					return self.system(tpinfo)
 				return ""
 
-		elif (self.type == self.VIDEOCODEC):
+		elif self.type == self.VIDEOCODEC:
 			return self.videocodec(info)
 
-		elif (self.type == self.FPS):
+		elif self.type == self.FPS:
 			return self.framerate(info)
 
-		elif (self.type == self.VIDEOSIZE):
+		elif self.type == self.VIDEOSIZE:
 			return self.videosize(info)
 
-		elif (self.type == self.RESCODEC):
+		elif self.type == self.RESCODEC:
 			vidsize = self.videosize(info)
 			fps = self.framerate(info)
 			vidcodec = self.videocodec(info)
 			return "%s   %s   %s" % (vidsize, fps, vidcodec)
 
-		elif (self.type == self.PIDINFO):
+		elif self.type == self.PIDINFO:
 			return self.pidstring(info)
 
-		elif (self.type == self.PIDHEXINFO):
+		elif self.type == self.PIDHEXINFO:
 			return self.pidhexstring(info)
 
-		elif (self.type == self.STREAMURL):
+		elif self.type == self.STREAMURL:
 			return str(self.streamurl())
 
-		elif (self.type == self.PIDHEXINFO):
+		elif self.type == self.PIDHEXINFO:
 			return str(self.streamtype())
 
-		elif (self.type == self.HDRINFO):
+		elif self.type == self.HDRINFO:
 			return self.hdr(info)
 
 	text = property(getText)
@@ -792,133 +790,133 @@ class GlamourBase(Poll, Converter, object):
 		if not info:
 			return False
 		else:
-			xresol = self.videowidth(info)
-			yresol = self.videoheight(info)
+			xresol = info.getInfo(iServiceInformation.sVideoWidth)
+			yresol = info.getInfo(iServiceInformation.sVideoHeight)
 			progrs = self.proginfo(info)
 			vcodec = self.videocodec(info)
 			streamurl = self.streamurl()
 			gamma = self.hdr(info)
-			if (self.type == self.IS1080):
+			if self.type == self.IS1080:
 				if (1880 <= xresol <= 2000 ) or (900 <= yresol <= 1090):
 					return True
 				return False
-			elif (self.type == self.IS720):
+			elif self.type == self.IS720:
 				if (601 <= yresol <= 740):
 					return True
 				return False
-			elif (self.type == self.IS576):
+			elif self.type == self.IS576:
 				if (501 <= yresol <= 600):
 					return True
 				return False
-			elif (self.type == self.IS1440):
+			elif self.type == self.IS1440:
 				if (2550 <= xresol <= 2570) or (1430 <= yresol <= 1450):
 					return True
 				return False
-			elif (self.type == self.IS2160):
+			elif self.type == self.IS2160:
 				if (3820 <= xresol <= 4100) or (2150 <= yresol <= 2170):
 					return True
 				return False
-			elif (self.type == self.IS480):
+			elif self.type == self.IS480:
 				if (380 <= yresol <= 500):
 					return True
 				return False
-			elif (self.type == self.IS360):
+			elif self.type == self.IS360:
 				if (300 <= yresol <= 379):
 					return True
 				return False
-			elif (self.type == self.IS288):
+			elif self.type == self.IS288:
 				if (261 <= yresol <= 299):
 					return True
 				return False
-			elif (self.type == self.IS240):
+			elif self.type == self.IS240:
 				if (181 <= yresol <= 260):
 					return True
 				return False
-			elif (self.type == self.IS144):
+			elif self.type == self.IS144:
 				if (120 <= yresol <= 180):
 					return True
 				return False
-			elif (self.type == self.ISPROGRESSIVE):
+			elif self.type == self.ISPROGRESSIVE:
 				if progrs == "p":
 					return True
 				return False
-			elif (self.type == self.ISINTERLACED):
+			elif self.type == self.ISINTERLACED:
 				if progrs == "i":
 					return True
 				return False
-			elif (self.type == self.ISSTREAMING):
+			elif self.type == self.ISSTREAMING:
 				if streamurl:
 					return True
 				return False
-			elif (self.type == self.HASMPEG2):
+			elif self.type == self.HASMPEG2:
 				if vcodec == "MPEG2":
 					return True
 				return False
-			elif (self.type == self.HASAVC):
+			elif self.type == self.HASAVC:
 				if vcodec == "AVC" or vcodec == "MPEG4":
 					return True
 				return False
-			elif (self.type == self.HASH263):
+			elif self.type == self.HASH263:
 				if vcodec == "H263":
 					return True
 				return False
-			elif (self.type == self.HASVC1):
+			elif self.type == self.HASVC1:
 				if "VC1" in vcodec:
 					return True
 				return False
-			elif (self.type == self.HASMPEG4VC):
+			elif self.type == self.HASMPEG4VC:
 				if vcodec == "MPEG4-VC":
 					return True
 				return False
-			elif (self.type == self.HASHEVC):
+			elif self.type == self.HASHEVC:
 				if vcodec == "HEVC" or vcodec == "H265":
 					return True
 				return False
-			elif (self.type == self.HASMPEG1):
+			elif self.type == self.HASMPEG1:
 				if vcodec == "MPEG1":
 					return True
 				return False
-			elif (self.type == self.HASVP8):
+			elif self.type == self.HASVP8:
 				if vcodec == "VB8" or vcodec == "VP8":
 					return True
 				return False
-			elif (self.type == self.HASVP9):
+			elif self.type == self.HASVP9:
 				if vcodec == "VB9" or vcodec == "VP9":
 					return True
 				return False
-			elif (self.type == self.HASVP6):
+			elif self.type == self.HASVP6:
 				if vcodec == "VB6" or vcodec == "VP6":
 					return True
 				return False
-			elif (self.type == self.HASDIVX):
+			elif self.type == self.HASDIVX:
 				if "DIVX" in vcodec:
 					return True
 				return False
-			elif (self.type == self.HASXVID):
+			elif self.type == self.HASXVID:
 				if "XVID" in vcodec:
 					return True
 				return False
-			elif (self.type == self.HASSPARK):
+			elif self.type == self.HASSPARK:
 				if vcodec == "SPARK":
 					return True
 				return False
-			elif (self.type == self.HASAVS):
+			elif self.type == self.HASAVS:
 				if "AVS" in vcodec:
 					return True
 				return False
-			elif (self.type == self.ISSDR):
+			elif self.type == self.ISSDR:
 				if gamma == "SDR":
 					return True
 				return False
-			elif (self.type == self.ISHDR):
+			elif self.type == self.ISHDR:
 				if gamma == "HDR":
 					return True
 				return False
-			elif (self.type == self.ISHDR10):
+			elif self.type == self.ISHDR10:
 				if gamma == "HDR10":
 					return True
 				return False
-			elif (self.type == self.ISHLG):
+			elif self.type == self.ISHLG:
 				if gamma == "HLG":
 					return True
 				return False

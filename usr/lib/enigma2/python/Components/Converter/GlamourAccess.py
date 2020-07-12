@@ -393,7 +393,7 @@ class GlamourAccess(Poll, Converter, object):
 			return False
 		caids = self.CaidList().strip(", ").split()
 
-		if self.type is self.FTA:
+		if self.type == self.FTA:
 			if not caids and not ecm_info:
 				return True
 			elif ecm_info:
@@ -401,7 +401,7 @@ class GlamourAccess(Poll, Converter, object):
 					return True
 			return False
 
-		if self.type is self.ISCRYPTED:
+		if self.type == self.ISCRYPTED:
 			if caids:
 				return True
 			return False

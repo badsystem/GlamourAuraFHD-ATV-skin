@@ -107,9 +107,9 @@ class GlamBitrate(Converter, object):
 		return
 
 	def changed(self, what):
-		if what[0] is self.CHANGED_SPECIFIC:
-			if what[1] is iPlayableService.evStart:
+		if what[0] == self.CHANGED_SPECIFIC:
+			if what[1] == iPlayableService.evStart:
 				self.initTimer.start(200, True)
-			elif what[1] is iPlayableService.evEnd:
+			elif what[1] == iPlayableService.evEnd:
 				self.clearData()
 				Converter.changed(self, what)

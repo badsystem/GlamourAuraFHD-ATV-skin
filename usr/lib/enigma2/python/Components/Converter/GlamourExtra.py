@@ -58,23 +58,23 @@ class GlamourExtra(Poll, Converter):
 
 
 	def dataAvail(self, strData):
-		self.hddtemp_output = (self.hddtemp_output).encode("utf-8") + strData
+		self.hddtemp_output = self.hddtemp_output.encode("utf-8", "ignore") + strData
 
 	def runFinished(self, retval):
-		temp = (self.hddtemp_output).decode("utf-8")
+		temp = self.hddtemp_output.decode("utf-8", "ignore")
 		if "No such file or directory" in temp or "not found" in temp:
-			htemp = ""
 			self.hddtemp = "HDD Temp: N/A"
 		else:
-			htemp = str(temp)
-			if htemp == "0" or htemp is None:
-				self.hddtemp = "HDD idle or N/A"
+			temp = int(temp)
+			if temp > 0:
+				temp = str(temp)
+				self.hddtemp = "HDD Temp: %s°C" % temp
 			else:
-				self.hddtemp = "HDD Temp: %sC" % htemp
+				self.hddtemp = "HDD idle or N/A"
 
 	@cached
 	def getText(self):
-		if (self.type == self.CPULOAD):
+		if self.type == self.CPULOAD:
 			cpuload = ""
 			if os.path.exists("/proc/loadavg"):
 				try:
@@ -85,7 +85,7 @@ class GlamourExtra(Poll, Converter):
 				cpuload = load.replace("\n", "").replace(" ", "")
 				return "CPU Load: %s" % cpuload
 
-		elif (self.type == self.TEMPERATURE):
+		elif self.type == self.TEMPERATURE:
 			systemp = ""
 			cputemp = ""
 			try:
@@ -118,10 +118,10 @@ class GlamourExtra(Poll, Converter):
 				return systemp
 			return systemp + "  " + "CPU: " + cputemp
 
-		elif (self.type == self.HDDTEMP):
+		elif self.type == self.HDDTEMP:
 			return self.hddtemp
 
-		elif (self.type == self.CPUSPEED):
+		elif self.type == self.CPUSPEED:
 			try:
 				cpuspeed = 0
 				for line in open("/proc/cpuinfo").readlines():
@@ -141,7 +141,7 @@ class GlamourExtra(Poll, Converter):
 			except:
 				return ""
 
-		if (self.type == self.FANINFO):
+		if self.type == self.FANINFO:
 			fs = ""
 			fv = ""
 			fp = ""
@@ -164,7 +164,7 @@ class GlamourExtra(Poll, Converter):
 			else:
 				return "Speed: %s V: %s PWM: %s" % (fs, fv, fp)
 
-		elif (self.type == self.UPTIME):
+		elif self.type == self.UPTIME:
 			try:
 				with open("/proc/uptime", "r") as up:
 					uptime_info = up.read().split()
