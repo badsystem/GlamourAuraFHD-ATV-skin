@@ -91,35 +91,36 @@ class GlamourExtra(Poll, Converter):
 			try:
 				if os.path.exists("/proc/stb/sensors/temp0/value"):
 					with open("/proc/stb/sensors/temp0/value") as stemp:
-						systemp = "Sys Temp: " + stemp.readline().replace("\n", "") + "°C"
+						systemp = "Sys Temp: %s°C" % stemp.readline().replace("\n", "")
 				elif os.path.exists("/proc/stb/fp/temp_sensor"):
 					with open("/proc/stb/fp/temp_sensor") as stemp:
-						systemp = "Board: " + stemp.readline().replace("\n", "") + "°C"
+						systemp = "Board: %s°C" % stemp.readline().replace("\n", "")
 				if os.path.exists("/proc/stb/fp/temp_sensor_avs"):
 					with open("/proc/stb/fp/temp_sensor_avs") as ctemp:
-						cputemp = ctemp.readline().replace("\n", "") + "°C"
+						cputemp = "%s°C" % ctemp.readline().replace("\n", "")
 				elif os.path.exists("/sys/devices/virtual/thermal/thermal_zone0/temp"):
 					with open("/sys/devices/virtual/thermal/thermal_zone0/temp") as ctemp:
-						cputemp = ctemp.read()[:2].replace("\n", "") + "°C"
+						cputemp = "%s°C" % ctemp.read()[:2].replace("\n", "")
 				elif os.path.exists("/proc/hisi/msp/pm_cpu"):
 					for line in open("/proc/hisi/msp/pm_cpu").readlines():
 						line = [x.strip() for x in line.strip().split(":")]
 						if line[0] in ("Tsensor"):
 							ctemp = line[1].split("=")
 							ctemp = line[1].split(" ")
-							cputemp = ctemp[2] + "°C"
+							cputemp = "%s°C" % ctemp[2]
 			except:
 				pass
 			if systemp == "" and cputemp == "":
 				return "Temperature: N/A"
 			if systemp == "":
-				return "CPU Temp: " + cputemp
+				return "CPU Temp: %s" % cputemp
 			if cputemp == "":
 				return systemp
-			return systemp + "  " + "CPU: " + cputemp
+			return "%s  CPU: %s" % (systemp, cputemp)
 
 		elif self.type == self.HDDTEMP:
 			return self.hddtemp
+
 
 		elif self.type == self.CPUSPEED:
 			try:
@@ -137,7 +138,10 @@ class GlamourExtra(Poll, Converter):
 							cpuspeed = int(old_div(int(binascii.hexlify(open("/sys/firmware/devicetree/base/cpus/cpu@0/clock-frequency", "rb").read()), 16), 100000000)) * 100
 						except:
 							cpuspeed = "-"
-				return "CPU Speed: %s MHz" % cpuspeed
+				if cpuspeed >= 1000:
+					return "CPU Speed: %s GHz" % str(round(cpuspeed/1000, 1))
+				else:
+					return "CPU Speed: %s MHz" % str(round(cpuspeed, 1))
 			except:
 				return ""
 
