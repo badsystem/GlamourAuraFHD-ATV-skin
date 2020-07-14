@@ -116,11 +116,10 @@ class GlamourExtra(Poll, Converter):
 				return "CPU Temp: %s" % cputemp
 			if cputemp == "":
 				return systemp
-			return "%s  CPU: %s" % (systemp, cputemp)
+			return "%s CPU: %s" % (systemp, cputemp)
 
 		elif self.type == self.HDDTEMP:
 			return self.hddtemp
-
 
 		elif self.type == self.CPUSPEED:
 			try:
@@ -128,20 +127,17 @@ class GlamourExtra(Poll, Converter):
 				for line in open("/proc/cpuinfo").readlines():
 					line = [x.strip() for x in line.strip().split(":")]
 					if line[0] == "cpu MHz":
-						 cpuspeed = "%1.0f" % float(line[1])
+						cpuspeed = "%1.0f" % float(line[1])
 				if not cpuspeed:
 					try:
-						cpuspeed = old_div(int(open("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq").read()), 1000)
+						import binascii
+						cpuspeed = int(old_div(int(binascii.hexlify(open("/sys/firmware/devicetree/base/cpus/cpu@0/clock-frequency", "rb").read()), 16), 100000000)) * 100
 					except:
 						try:
-							import binascii
-							cpuspeed = int(old_div(int(binascii.hexlify(open("/sys/firmware/devicetree/base/cpus/cpu@0/clock-frequency", "rb").read()), 16), 100000000)) * 100
+							cpuspeed = old_div(int(open("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq").read()), 1000)
 						except:
 							cpuspeed = "-"
-				if cpuspeed >= 1000:
-					return "CPU Speed: %s GHz" % str(round(cpuspeed/1000, 1))
-				else:
-					return "CPU Speed: %s MHz" % str(round(cpuspeed, 1))
+				return "CPU Speed: %s MHz" % cpuspeed
 			except:
 				return ""
 

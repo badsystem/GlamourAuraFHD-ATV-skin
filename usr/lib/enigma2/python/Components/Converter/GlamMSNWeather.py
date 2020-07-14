@@ -25,7 +25,6 @@ import os
 import math
 import gettext
 import datetime, time
-from Tools.Directories import fileExists, pathExists
 from Components.Converter.Converter import Converter
 from Components.Element import cached
 from Components.config import config, configfile
@@ -33,7 +32,7 @@ from Components.Console import Console as iConsole
 from Components.Language import language
 from time import localtime, strftime
 from datetime import date
-from os import environ
+from os import environ, path
 from Components.Converter.Poll import Poll
 import six
 
@@ -513,15 +512,15 @@ class GlamMSNWeather(Poll, Converter, object):
 			'Precip4': '',\
 			}
 #
-		if fileExists("/tmp/weathermsn2.xml"):
+		if os.path.exists("/tmp/weathermsn2.xml"):
 			if int((time.time() - os.stat("/tmp/weathermsn2.xml").st_mtime)/60) >= time_update:
 				self.get_xmlfile()
 		else:
 			self.get_xmlfile()
-		if not fileExists("/tmp/weathermsn2.xml"):
+		if not os.path.exists("/tmp/weathermsn2.xml"):
 			self.write_none()
 			return info
-		if fileExists("/tmp/weathermsn2.xml") and open("/tmp/weathermsn2.xml").read() == 'None':
+		if os.path.exists("/tmp/weathermsn2.xml") and open("/tmp/weathermsn2.xml").read() == 'None':
 			return info
 		for line in open("/tmp/weathermsn2.xml"):
 			try:
@@ -824,7 +823,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		if RA < 0:
 			RA = RA + 2 * PI
 		DEC = math.asin(math.sin(PLat * DEG2RAD) * math.cos(EPS * DEG2RAD) + math.cos(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD) * math.sin(PLong * DEG2RAD)) * RAD2DEG # declination
-		BETA = math.acos((math.cos(90.35 * DEG2RAD) - math.sin(DEC * DEG2RAD) * math.sin(lat * DEG2RAD)) / (math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD))) * RAD2DEG # hour angle
+		#BETA = math.acos((math.cos(90.35 * DEG2RAD) - math.sin(DEC * DEG2RAD) * math.sin(lat * DEG2RAD)) / (math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD))) * RAD2DEG # hour angle
 		SPR = math.fmod((RA - BETA + long - STT * 15 - zone * 15 * 1.0027379093) / 15 * 0.997269566423530, 24)
 		if SPR < 0:
 			SPR = SPR + 24
@@ -865,7 +864,7 @@ class GlamMSNWeather(Poll, Converter, object):
 			P1Sx = '0'
 		else:
 			P1Sx = ''
-# Орбита венеры
+# Orbit of Venus
 		LP2 = 342.767053 + 58519.21191 * T + 0.0003097 * T * T # avg longitude L
 		wP2 = 54.384186 + 0.5081861 * T - 0.0013864 * T * T # perihelion argument w
 		WP2 = 75.779647 + 0.8998500 * T + 0.0004100 * T * T # longitude of the ascending node W
@@ -1511,9 +1510,9 @@ class GlamMSNWeather(Poll, Converter, object):
 			RA = RA + 2 * PI
 		DEC = math.asin(math.sin(PLat * DEG2RAD) * math.cos(EPS * DEG2RAD) + math.cos(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD) * math.sin(PLong * DEG2RAD)) * RAD2DEG # declination
 		TH = ST - RA
-		Z  = math.acos(math.sin(lat * DEG2RAD) * math.sin(DEC * DEG2RAD) + math.cos(lat * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(TH * DEG2RAD)) * RAD2DEG # косинус зенитного угла
+		Z  = math.acos(math.sin(lat * DEG2RAD) * math.sin(DEC * DEG2RAD) + math.cos(lat * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(TH * DEG2RAD)) * RAD2DEG # cosine of the zenith angle
 		H = 90 - Z # угол места
-		AZ = math.atan2(math.sin(TH * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD), math.sin(H * DEG2RAD) * math.sin(lat * DEG2RAD) - math.sin(DEC * DEG2RAD)) * RAD2DEG + 180 # азимут + 180
+		AZ = math.atan2(math.sin(TH * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD), math.sin(H * DEG2RAD) * math.sin(lat * DEG2RAD) - math.sin(DEC * DEG2RAD)) * RAD2DEG + 180 # azimuth + 180
 		P1A = round(AZ, 1)
 # Orbit of Venus
 		LP2 = 342.767053 + 58519.21191 * T + 0.0003097 * T * T # avg longitude L
@@ -1551,9 +1550,9 @@ class GlamMSNWeather(Poll, Converter, object):
 			RA = RA + 2 * PI
 		DEC = math.asin(math.sin(PLat * DEG2RAD) * math.cos(EPS * DEG2RAD) + math.cos(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD) * math.sin(PLong * DEG2RAD)) * RAD2DEG # гdeclination
 		TH = ST - RA
-		Z  = math.acos(math.sin(lat * DEG2RAD) * math.sin(DEC * DEG2RAD) + math.cos(lat * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(TH * DEG2RAD)) * RAD2DEG # косинус зенитного угла
+		Z  = math.acos(math.sin(lat * DEG2RAD) * math.sin(DEC * DEG2RAD) + math.cos(lat * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(TH * DEG2RAD)) * RAD2DEG # cosine of the zenith angle
 		H = 90 - Z # угол места
-		AZ = math.atan2(math.sin(TH * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD), math.sin(H * DEG2RAD) * math.sin(lat * DEG2RAD) - math.sin(DEC * DEG2RAD)) * RAD2DEG + 180 # азимут + 180
+		AZ = math.atan2(math.sin(TH * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD), math.sin(H * DEG2RAD) * math.sin(lat * DEG2RAD) - math.sin(DEC * DEG2RAD)) * RAD2DEG + 180 # azimuth + 180
 		P2A = round(AZ, 1)
 # Orbit of Mars
 		LP4 = 293.737334 + 19141.69551 * T + 0.0003107 * T * T # avg longitude L
@@ -1596,9 +1595,9 @@ class GlamMSNWeather(Poll, Converter, object):
 			RA = RA + 2 * PI
 		DEC = math.asin(math.sin(PLat * DEG2RAD) * math.cos(EPS * DEG2RAD) + math.cos(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD) * math.sin(PLong * DEG2RAD)) * RAD2DEG # declination
 		TH = ST - RA
-		Z  = math.acos(math.sin(lat * DEG2RAD) * math.sin(DEC * DEG2RAD) + math.cos(lat * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(TH * DEG2RAD)) * RAD2DEG # косинус зенитного угла
-		H = 90 - Z # угол места
-		AZ = math.atan2(math.sin(TH * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD), math.sin(H * DEG2RAD) * math.sin(lat * DEG2RAD) - math.sin(DEC * DEG2RAD)) * RAD2DEG + 180 # азимут + 180
+		Z  = math.acos(math.sin(lat * DEG2RAD) * math.sin(DEC * DEG2RAD) + math.cos(lat * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(TH * DEG2RAD)) * RAD2DEG # cosine of the zenith angle
+		H = 90 - Z # elevation
+		AZ = math.atan2(math.sin(TH * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD), math.sin(H * DEG2RAD) * math.sin(lat * DEG2RAD) - math.sin(DEC * DEG2RAD)) * RAD2DEG + 180 # azimuth + 180
 		P4A = round(AZ, 1)
 # Jupiter orbit
 		LP5 = 238.049257 + 3036.301986 * T + 0.0003347 * T * T - 0.00000165 * T * T * T # avg longitude L
@@ -1662,7 +1661,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		DEC = math.asin(math.sin(PLat * DEG2RAD) * math.cos(EPS * DEG2RAD) + math.cos(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD) * math.sin(PLong * DEG2RAD)) * RAD2DEG # declination
 		TH = ST - RA
 		Z  = math.acos(math.sin(lat * DEG2RAD) * math.sin(DEC * DEG2RAD) + math.cos(lat * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(TH * DEG2RAD)) * RAD2DEG # cosine of the zenith angle
-		H = 90 - Z # угол места
+		H = 90 - Z # elevation
 		AZ = math.atan2(math.sin(TH * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD), math.sin(H * DEG2RAD) * math.sin(lat * DEG2RAD) - math.sin(DEC * DEG2RAD)) * RAD2DEG + 180 # azimuth + 180
 		P5A = round(AZ, 1)
 # Orbit of Saturn
@@ -1730,7 +1729,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		DEC = math.asin(math.sin(PLat * DEG2RAD) * math.cos(EPS * DEG2RAD) + math.cos(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD) * math.sin(PLong * DEG2RAD)) * RAD2DEG # declination
 		TH = ST - RA
 		Z  = math.acos(math.sin(lat * DEG2RAD) * math.sin(DEC * DEG2RAD) + math.cos(lat * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(TH * DEG2RAD)) * RAD2DEG # cosine of the zenith angle
-		H = 90 - Z # угол места
+		H = 90 - Z # elevation
 		AZ = math.atan2(math.sin(TH * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD), math.sin(H * DEG2RAD) * math.sin(lat * DEG2RAD) - math.sin(DEC * DEG2RAD)) * RAD2DEG + 180 # azimuth + 180
 		P6A = round(AZ, 1)
 # Orbit of Uranus
@@ -1776,7 +1775,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		DEC = math.asin(math.sin(PLat * DEG2RAD) * math.cos(EPS * DEG2RAD) + math.cos(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD) * math.sin(PLong * DEG2RAD)) * RAD2DEG # declination
 		TH = ST - RA
 		Z  = math.acos(math.sin(lat * DEG2RAD) * math.sin(DEC * DEG2RAD) + math.cos(lat * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(TH * DEG2RAD)) * RAD2DEG # cosine of the zenith angle
-		H = 90 - Z # угол места
+		H = 90 - Z # elevation
 		AZ = math.atan2(math.sin(TH * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD), math.sin(H * DEG2RAD) * math.sin(lat * DEG2RAD) - math.sin(DEC * DEG2RAD)) * RAD2DEG + 180 # azimuth + 180
 		P7A = round(AZ, 1)
 # Orbit of Neptune
@@ -1818,7 +1817,7 @@ class GlamMSNWeather(Poll, Converter, object):
 		DEC = math.asin(math.sin(PLat * DEG2RAD) * math.cos(EPS * DEG2RAD) + math.cos(PLat * DEG2RAD) * math.sin(EPS * DEG2RAD) * math.sin(PLong * DEG2RAD)) * RAD2DEG # declination
 		TH = ST - RA
 		Z  = math.acos(math.sin(lat * DEG2RAD) * math.sin(DEC * DEG2RAD) + math.cos(lat * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(TH * DEG2RAD)) * RAD2DEG # cosine of the zenith angle
-		H = 90 - Z # угол места
+		H = 90 - Z # elevation
 		AZ = math.atan2(math.sin(TH * DEG2RAD) * math.cos(DEC * DEG2RAD) * math.cos(lat * DEG2RAD), math.sin(H * DEG2RAD) * math.sin(lat * DEG2RAD) - math.sin(DEC * DEG2RAD)) * RAD2DEG + 180 # azimuth + 180
 		P8A = round(AZ, 1)
 # Moon phases, distance to the moon, azimuth moon
@@ -2188,7 +2187,7 @@ class GlamMSNWeather(Poll, Converter, object):
 			info = msnweather['Moonlight']
 		if self.type is self.MOONPICON:
 			info = msnweather['PiconMoon']
-# Сегодня
+# Today
 		if self.type is self.TEMP:
 			info = msnweather['Temp']
 		if self.type is self.PICON:
